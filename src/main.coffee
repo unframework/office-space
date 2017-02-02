@@ -71,9 +71,10 @@ groundShape = regl
 
 cameraPosition = vec3.create()
 camera = mat4.create()
-model = mat4.create()
+modelA = mat4.create()
+modelB = mat4.create()
 
-lightDir = [ 0.29, 0.39, 0.87 ]
+lightDir = [ 0.29, -0.39, 0.87 ]
 light = mat4.mul mat4.create(),
   mat4.ortho [], -12, 12, -12, 12, -12, 12
   mat4.lookAt [], lightDir, [ 0, 0, 0 ], [ 0, 1, 0 ]
@@ -180,17 +181,25 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX camera, camera, -0.8
   mat4.translate camera, camera, cameraPosition
 
-  mat4.identity model
-  mat4.rotateZ model, model, -1
+  mat4.identity modelA
+  mat4.rotateZ modelA, modelA, -1
+
+  mat4.identity modelB
+  mat4.translate modelB, modelB, [ 0.6, -0.8, 0 ]
+  mat4.rotateZ modelB, modelB, -2
 
   withShadowFBO ->
     regl.clear
       color: [ 1, 1, 1, 1 ]
       depth: 1
 
-    if personShape then personShape -> renderDepth
-      model: model
-      light: light
+    if personShape then personShape ->
+      renderDepth
+        model: modelA
+        light: light
+      renderDepth
+        model: modelB
+        light: light
 
   regl.clear
     color: [ 1, 1, 1, 1 ]
@@ -203,8 +212,14 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     colorB: [ 0.98, 0.98, 0.98, 1 ]
     shadowMap: shadowFBO
 
-  if personShape then personShape -> renderView
-    model: model
-    camera: camera
-    light: light
-    shadowMap: shadowFBO
+  if personShape then personShape ->
+    renderView
+      model: modelA
+      camera: camera
+      light: light
+      shadowMap: shadowFBO
+    renderView
+      model: modelB
+      camera: camera
+      light: light
+      shadowMap: shadowFBO
