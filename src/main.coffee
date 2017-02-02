@@ -96,9 +96,11 @@ renderView = regl
     uniform mediump vec4 colorTop;
     uniform mediump vec4 colorBottom;
     attribute vec4 position;
+    attribute vec3 normal;
     attribute vec2 uv;
 
     varying vec2 fUV;
+    varying vec3 fNormal;
     varying vec4 fColor;
     varying vec4 fShadowCoord;
 
@@ -106,6 +108,7 @@ renderView = regl
       vec4 worldPosition = model * position;
       gl_Position = camera * worldPosition;
       fColor = mix(colorBottom, colorTop, position.z);
+      fNormal = normal;
       fUV = uv;
       fShadowCoord = light * worldPosition;
     }
@@ -114,7 +117,9 @@ renderView = regl
   frag: '''
     varying mediump vec4 fColor;
     varying mediump vec2 fUV;
+    varying mediump vec3 fNormal;
     varying mediump vec4 fShadowCoord;
+    uniform mediump vec3 lightDir;
     uniform sampler2D shadowMap;
     uniform sampler2D texture;
 
@@ -127,12 +132,14 @@ renderView = regl
 
     void main() {
       vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
+      float lightCosTheta = dot(fNormal, lightDir);
+      float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
 
-      float bias = 0.005;
+      float bias = max(0.03 * (1.0 - lightCosTheta), 0.005);
       float v = shadowSample(co, fShadowCoord.z, bias);
 
       gl_FragColor = vec4(fColor.xyz * (0.8 + 0.2 * v), 1.0);
-      gl_FragColor = texture2D(texture, fUV) * fColor * vec4(vec3(0.9 + 0.1 * v), 1.0);
+      gl_FragColor = texture2D(texture, fUV) * fColor * vec4(vec3(0.8 + 0.1 * lightDiffuseAmount + 0.1 * v), 1.0);
     }
   '''
 
@@ -140,6 +147,7 @@ renderView = regl
     model: regl.prop 'model'
     camera: regl.prop 'camera'
     light: regl.prop 'light'
+    lightDir: regl.prop 'lightDir'
     shadowMap: regl.prop 'shadowMap'
 
     colorTop: [ 1, 1, 0.8, 1 ]
@@ -217,9 +225,11 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       model: modelA
       camera: camera
       light: light
+      lightDir: lightDir
       shadowMap: shadowFBO
     renderView
       model: modelB
       camera: camera
       light: light
+      lightDir: lightDir
       shadowMap: shadowFBO

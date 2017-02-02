@@ -44,6 +44,28 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
             1
           ]
       )
+
+      normal: regl.buffer (
+        for tri in mesh.faceNormals
+          vn0 = mesh.vertexNormals[tri[0]]
+          vn1 = mesh.vertexNormals[tri[1]]
+          vn2 = mesh.vertexNormals[tri[2]]
+
+          [
+            vn0[0]
+            vn0[1]
+            vn0[2]
+
+            vn1[0]
+            vn1[1]
+            vn1[2]
+
+            vn2[0]
+            vn2[1]
+            vn2[2]
+          ]
+      )
+
       uv: regl.buffer (
         for tri in mesh.faceUVs
           uv0 = mesh.vertexUVs[tri[0]]
