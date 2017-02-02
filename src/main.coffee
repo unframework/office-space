@@ -48,6 +48,42 @@ cameraPosition = vec3.create()
 camera = mat4.create()
 model = mat4.create()
 
+renderView = regl
+  vert: '
+    uniform mat4 camera;
+    uniform mat4 model;
+    uniform mediump vec4 colorTop;
+    uniform mediump vec4 colorBottom;
+    attribute vec4 position;
+    attribute vec2 uv;
+
+    varying vec2 fUV;
+    varying vec4 fColor;
+
+    void main() {
+      gl_Position = camera * model * position;
+      fColor = mix(colorBottom, colorTop, position.z);
+      fUV = uv;
+    }
+  '
+
+  frag: '
+    varying mediump vec4 fColor;
+    varying mediump vec2 fUV;
+    uniform sampler2D texture;
+
+    void main() {
+      gl_FragColor = texture2D(texture, fUV) * fColor;
+    }
+  '
+
+  uniforms:
+    model: regl.prop 'model'
+    camera: regl.prop 'camera'
+
+    colorTop: [ 1, 1, 0.8, 1 ]
+    colorBottom: [ 1, 0.8, 1, 1 ]
+
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
   vec3.set cameraPosition, 0, 4, -4
 
@@ -67,6 +103,6 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     colorA: [ 0.8, 0.8, 0.8, 1 ]
     colorB: [ 0.98, 0.98, 0.98, 1 ]
 
-  if personShape then personShape
+  if personShape then personShape -> renderView
     model: model
     camera: camera

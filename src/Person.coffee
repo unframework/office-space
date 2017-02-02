@@ -20,34 +20,6 @@ textureLoad = new Promise (resolve) ->
 
 module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -> parseOBJ createReadableFromData(MESH_DATA), (err, mesh) ->
   resolve regl
-    vert: '
-      uniform mat4 camera;
-      uniform mat4 model;
-      uniform mediump vec4 colorTop;
-      uniform mediump vec4 colorBottom;
-      attribute vec4 position;
-      attribute vec2 uv;
-
-      varying vec2 fUV;
-      varying vec4 fColor;
-
-      void main() {
-        gl_Position = camera * model * position;
-        fColor = mix(colorBottom, colorTop, position.z);
-        fUV = uv;
-      }
-    '
-
-    frag: '
-      varying mediump vec4 fColor;
-      varying mediump vec2 fUV;
-      uniform sampler2D texture;
-
-      void main() {
-        gl_FragColor = texture2D(texture, fUV) * fColor;
-      }
-    '
-
     attributes:
       position: regl.buffer (
         for tri in mesh.facePositions
@@ -91,11 +63,6 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
       )
 
     uniforms:
-      model: regl.prop 'model'
-      camera: regl.prop 'camera'
-
-      colorTop: [ 1, 1, 0.8, 1 ]
-      colorBottom: [ 1, 0.8, 1, 1 ]
       texture: regl.texture
         data: texture
         flipY: true
