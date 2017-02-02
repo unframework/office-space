@@ -108,7 +108,7 @@ renderView = regl
       vec4 worldPosition = model * position;
       gl_Position = camera * worldPosition;
       fColor = mix(colorBottom, colorTop, position.z);
-      fNormal = normal;
+      fNormal = (model * vec4(normal, 0)).xyz; // normal in world space without translation
       fUV = uv;
       fShadowCoord = light * worldPosition;
     }
