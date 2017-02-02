@@ -1,0 +1,22 @@
+{
+  "name": "office-space",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\""
+  },
+  "browserify": {
+    "transform": [
+      "coffeeify",
+      "brfs"
+    ]
+  },
+  "author": "Nick Matantsev <nick.matantsev@gmail.com>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "brfs": "^1.4.3",
+    "browserify": "^14.0.0",
+    "coffeeify": "^2.1.0"
+  }
+}
