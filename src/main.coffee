@@ -139,7 +139,7 @@ renderView = regl
       float v = shadowSample(co, fShadowCoord.z, bias);
 
       gl_FragColor = vec4(fColor.xyz * (0.8 + 0.2 * v), 1.0);
-      gl_FragColor = texture2D(texture, fUV) * fColor * vec4(vec3(0.8 + 0.1 * lightDiffuseAmount + 0.1 * v), 1.0);
+      gl_FragColor = texture2D(texture, fUV) * fColor * vec4(vec3(0.8 + 0.2 * lightDiffuseAmount * v), 1.0);
     }
   '''
 
