@@ -89,6 +89,7 @@ shadowFBO = regl.framebuffer
 
 renderView = regl
   vert: '''
+    uniform mat4 light;
     uniform mat4 camera;
     uniform mat4 model;
     uniform mediump vec4 colorTop;
@@ -98,27 +99,47 @@ renderView = regl
 
     varying vec2 fUV;
     varying vec4 fColor;
+    varying vec4 fShadowCoord;
 
     void main() {
-      gl_Position = camera * model * position;
+      vec4 worldPosition = model * position;
+      gl_Position = camera * worldPosition;
       fColor = mix(colorBottom, colorTop, position.z);
       fUV = uv;
+      fShadowCoord = light * worldPosition;
     }
   '''
 
   frag: '''
     varying mediump vec4 fColor;
     varying mediump vec2 fUV;
+    varying mediump vec4 fShadowCoord;
+    uniform sampler2D shadowMap;
     uniform sampler2D texture;
 
+    float shadowSample(vec2 co, float z, float bias) {
+      float a = texture2D(shadowMap, co).z;
+      float b = fShadowCoord.z;
+
+      return step(b - bias, a);
+    }
+
     void main() {
-      gl_FragColor = texture2D(texture, fUV) * fColor;
+      vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
+
+      float bias = 0.005;
+      float v = shadowSample(co, fShadowCoord.z, bias);
+
+      gl_FragColor = vec4(fColor.xyz * (0.8 + 0.2 * v), 1.0);
+      gl_FragColor = texture2D(texture, fUV) * fColor * vec4(vec3(0.9 + 0.1 * v), 1.0);
     }
   '''
 
   uniforms:
     model: regl.prop 'model'
     camera: regl.prop 'camera'
+    light: regl.prop 'light'
+    shadowMap: regl.prop 'shadowMap'
 
     colorTop: [ 1, 1, 0.8, 1 ]
     colorBottom: [ 1, 0.8, 1, 1 ]
@@ -185,3 +206,5 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   if personShape then personShape -> renderView
     model: model
     camera: camera
+    light: light
+    shadowMap: shadowFBO
