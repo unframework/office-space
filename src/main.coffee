@@ -1,4 +1,13 @@
+vec3 = require('gl-matrix').vec3
+mat4 = require('gl-matrix').mat4
 regl = require('regl')()
+
+personShape = null
+require('./Person.coffee')(regl).then (v) -> personShape = v
+
+cameraPosition = vec3.create()
+camera = mat4.create()
+model = mat4.create()
 
 drawShape = regl
   frag: '
@@ -36,21 +45,19 @@ drawShape = regl
   primitive: 'triangle fan'
   count: 4
 
-regl.frame ({ time }) ->
+regl.frame ({ time, viewportWidth, viewportHeight }) ->
+  vec3.set cameraPosition, 0, 4, -8
+
+  mat4.perspective camera, 45, viewportWidth / viewportHeight, 1, 20
+  mat4.rotateX camera, camera, -0.5
+  mat4.translate camera, camera, cameraPosition
+
+  mat4.identity model
+
   regl.clear
     color: [0, 0, 0, 0]
     depth: 1
 
-  drawShape
-    colorA: [
-      Math.cos(time * 0.1)
-      Math.sin(time * 0.08)
-      Math.cos(time * 0.3)
-      1
-    ]
-    colorB: [
-      Math.cos((time + 2.5) * 0.1)
-      Math.sin((time + 2.5) * 0.08)
-      Math.cos((time + 2.5) * 0.3)
-      1
-    ]
+  if personShape then personShape
+    model: model
+    camera: camera

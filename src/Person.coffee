@@ -4,7 +4,7 @@ parseOBJ = require('parse-obj')
 
 TEXTURE_DATA = fs.readFileSync(__dirname + '/Person.png', 'binary')
 MESH_DATA = fs.readFileSync __dirname + '/Person.objdata'
-MESH_SCALE = 1.5
+MESH_SCALE = 1
 
 createReadableFromData = (data) ->
   fileStream = new Readable read: -> # no-op read
@@ -59,14 +59,17 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
             v0[0] * MESH_SCALE
             v0[1] * MESH_SCALE
             v0[2] * MESH_SCALE
+            1
 
             v1[0] * MESH_SCALE
             v1[1] * MESH_SCALE
             v1[2] * MESH_SCALE
+            1
 
             v2[0] * MESH_SCALE
             v2[1] * MESH_SCALE
             v2[2] * MESH_SCALE
+            1
           ]
       )
       uv: regl.buffer (
