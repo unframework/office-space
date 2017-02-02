@@ -3,6 +3,8 @@ mat4 = require('gl-matrix').mat4
 regl = require('regl')
   extensions: 'oes_texture_float'
 
+LIGHT_MAP_DEPTH_EXTENT = 12
+
 # code inspired by https://github.com/regl-project/regl/blob/gh-pages/example/shadow_map.js
 personShape = null
 require('./Person.coffee')(regl).then (v) -> personShape = v
@@ -74,10 +76,7 @@ camera = mat4.create()
 modelA = mat4.create()
 modelB = mat4.create()
 
-lightDir = [ 0.29, -0.39, 0.87 ]
-light = mat4.mul mat4.create(),
-  mat4.ortho [], -12, 12, -12, 12, -12, 12
-  mat4.lookAt [], lightDir, [ 0, 0, 0 ], [ 0, 1, 0 ]
+light = mat4.create()
 
 shadowFBO = regl.framebuffer
   color: regl.texture
@@ -90,9 +89,9 @@ shadowFBO = regl.framebuffer
 
 renderView = regl
   vert: '''
-    uniform mat4 light;
-    uniform mat4 camera;
-    uniform mat4 model;
+    uniform mediump mat4 light;
+    uniform mediump mat4 camera;
+    uniform mediump mat4 model;
     uniform mediump vec4 colorTop;
     uniform mediump vec4 colorBottom;
     attribute vec4 position;
@@ -119,7 +118,7 @@ renderView = regl
     varying mediump vec2 fUV;
     varying mediump vec3 fNormal;
     varying mediump vec4 fShadowCoord;
-    uniform mediump vec3 lightDir;
+    uniform mediump mat4 light;
     uniform sampler2D shadowMap;
     uniform sampler2D texture;
 
@@ -132,7 +131,7 @@ renderView = regl
 
     void main() {
       vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
-      float lightCosTheta = dot(fNormal, lightDir);
+      float lightCosTheta = -float(''' + LIGHT_MAP_DEPTH_EXTENT + ''') * (light * vec4(fNormal, 0)).z;
       float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
 
       float bias = max(0.03 * (1.0 - lightCosTheta), 0.005);
@@ -147,7 +146,6 @@ renderView = regl
     model: regl.prop 'model'
     camera: regl.prop 'camera'
     light: regl.prop 'light'
-    lightDir: regl.prop 'lightDir'
     shadowMap: regl.prop 'shadowMap'
 
     colorTop: [ 1, 1, 0.8, 1 ]
@@ -189,6 +187,10 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX camera, camera, -0.8
   mat4.translate camera, camera, cameraPosition
 
+  mat4.ortho light, -12, 12, -12, 12, -LIGHT_MAP_DEPTH_EXTENT, LIGHT_MAP_DEPTH_EXTENT
+  mat4.rotateX light, light, -0.8
+  mat4.rotateZ light, light, time / 2.5
+
   mat4.identity modelA
   mat4.rotateZ modelA, modelA, -1
 
@@ -225,11 +227,9 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       model: modelA
       camera: camera
       light: light
-      lightDir: lightDir
       shadowMap: shadowFBO
     renderView
       model: modelB
       camera: camera
       light: light
-      lightDir: lightDir
       shadowMap: shadowFBO
