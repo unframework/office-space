@@ -188,7 +188,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.translate camera, camera, cameraPosition
 
   mat4.ortho light, -12, 12, -12, 12, -LIGHT_MAP_DEPTH_EXTENT, LIGHT_MAP_DEPTH_EXTENT
-  mat4.rotateX light, light, -0.8
+  mat4.rotateX light, light, -0.2 - 0.6 * (Math.sin(time / 7) * 0.5 + 0.5)
   mat4.rotateZ light, light, time / 2.5
 
   mat4.identity modelA
