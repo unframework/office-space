@@ -46,13 +46,14 @@ drawShape = regl
   count: 4
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 0, 4, -8
+  vec3.set cameraPosition, 0, 4, -4
 
   mat4.perspective camera, 45, viewportWidth / viewportHeight, 1, 20
-  mat4.rotateX camera, camera, -0.5
+  mat4.rotateX camera, camera, -0.8
   mat4.translate camera, camera, cameraPosition
 
   mat4.identity model
+  mat4.rotateZ model, model, -1
 
   regl.clear
     color: [0, 0, 0, 0]
