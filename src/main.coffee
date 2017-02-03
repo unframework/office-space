@@ -89,38 +89,46 @@ shadowFBO = regl.framebuffer
 
 renderView = regl
   vert: '''
-    uniform mediump mat4 light;
+    // standard material code
     uniform mediump mat4 camera;
+    uniform mediump mat4 light;
     uniform mediump mat4 model;
+
+    varying vec4 fShadowCoord;
+    varying vec4 fNormal;
+
+    void applyMaterial(vec4 localPosition, vec3 localNormal) {
+      vec4 worldPosition = model * localPosition;
+
+      gl_Position = camera * worldPosition;
+      fShadowCoord = light * worldPosition;
+      fNormal = model * vec4(localNormal, 0); // normal in world space without translation
+    }
+
+    // shape-specific code
     uniform mediump vec4 colorTop;
     uniform mediump vec4 colorBottom;
     attribute vec4 position;
     attribute vec3 normal;
     attribute vec2 uv;
 
-    varying vec2 fUV;
-    varying vec4 fNormal;
     varying vec4 fColor;
-    varying vec4 fShadowCoord;
+    varying vec2 fUV;
 
     void main() {
-      vec4 worldPosition = model * position;
-      gl_Position = camera * worldPosition;
       fColor = mix(colorBottom, colorTop, position.z);
-      fNormal = model * vec4(normal, 0); // normal in world space without translation
       fUV = uv;
-      fShadowCoord = light * worldPosition;
+
+      applyMaterial(position, normal);
     }
   '''
 
   frag: '''
-    varying mediump vec4 fColor;
-    varying mediump vec2 fUV;
-    varying mediump vec4 fNormal;
-    varying mediump vec4 fShadowCoord;
+    // standard material code
     uniform mediump mat4 light;
     uniform sampler2D shadowMap;
-    uniform sampler2D texture;
+    varying mediump vec4 fShadowCoord;
+    varying mediump vec4 fNormal;
 
     float shadowSample(vec2 co, float z, float bias) {
       float a = texture2D(shadowMap, co).z;
@@ -129,7 +137,7 @@ renderView = regl
       return step(b - bias, a);
     }
 
-    void main() {
+    void applyMaterial(vec4 pigment) {
       vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
       float lightCosTheta = -float(''' + LIGHT_MAP_DEPTH_EXTENT + ''') * (light * fNormal).z;
       float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
@@ -137,8 +145,16 @@ renderView = regl
       float bias = max(0.03 * (1.0 - lightCosTheta), 0.005);
       float v = shadowSample(co, fShadowCoord.z, bias);
 
-      gl_FragColor = vec4(fColor.xyz * (0.8 + 0.2 * v), 1.0);
-      gl_FragColor = texture2D(texture, fUV) * fColor * vec4(vec3(0.8 + 0.2 * lightDiffuseAmount * v), 1.0);
+      gl_FragColor = pigment * vec4(vec3(0.8 + 0.2 * lightDiffuseAmount * v), 1.0);
+    }
+
+    // shape-specific code
+    uniform sampler2D texture;
+    varying mediump vec4 fColor;
+    varying mediump vec2 fUV;
+
+    void main() {
+      applyMaterial(texture2D(texture, fUV) * fColor);
     }
   '''
 
