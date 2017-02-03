@@ -10,48 +10,34 @@ personShape = null
 require('./Person.coffee')(regl).then (v) -> personShape = v
 
 groundShape = regl
-  vert: '''
-    uniform mat4 light;
+  context:
+    clayVert: '''
+      uniform vec4 colorA;
+      uniform vec4 colorB;
+      attribute vec2 position;
 
-    uniform vec4 colorA;
-    uniform vec4 colorB;
-    uniform mat4 camera;
-    attribute vec2 position;
+      varying vec4 fColor;
 
-    varying vec4 color;
-    varying vec4 fShadowCoord;
+      void clayPigment() {
+        fColor = mix(colorA, colorB, (position.y + 8.0) / 16.0);
+      }
 
-    void main() {
-      vec4 worldPosition = vec4(position, 0, 1);
-      gl_Position = camera * worldPosition;
-      color = mix(colorA, colorB, (position.y + 8.0) / 16.0);
-      fShadowCoord = light * worldPosition;
-    }
-  '''
+      void clayPosition() {
+        applyPosition(vec4(position, 0, 1));
+      }
 
-  frag: '''
-    varying mediump vec4 color;
-    varying mediump vec4 fShadowCoord;
-    uniform sampler2D shadowMap;
+      void clayNormal() {
+        applyNormal(vec3(0, 0, 1));
+      }
+    '''
 
-    float shadowSample(vec2 co, float z, float bias) {
-      float a = texture2D(shadowMap, co).z;
-      float b = fShadowCoord.z;
+    clayFrag: '''
+      varying mediump vec4 fColor;
 
-      return step(b - bias, a);
-    }
-
-    void main() {
-      vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
-
-      float bias = 0.005;
-
-      float v = 1.0; // shadow value
-      v = shadowSample(co, fShadowCoord.z, bias);
-
-      gl_FragColor = vec4(color.xyz * (0.8 + 0.2 * v), 1.0);
-    }
-  '''
+      void clayPigment() {
+        applyPigment(fColor);
+      }
+    '''
 
   attributes:
     position: regl.buffer [
@@ -73,6 +59,7 @@ groundShape = regl
 
 cameraPosition = vec3.create()
 camera = mat4.create()
+ground = mat4.create()
 modelA = mat4.create()
 modelB = mat4.create()
 
@@ -165,9 +152,6 @@ renderView = regl
     light: regl.prop 'light'
     shadowMap: regl.prop 'shadowMap'
 
-    colorTop: [ 1, 1, 0.8, 1 ]
-    colorBottom: [ 1, 0.8, 1, 1 ]
-
 renderDepth = regl
   context:
     vert: (context) -> '''
@@ -224,6 +208,8 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX light, light, -0.6
   mat4.rotateZ light, light, 3 * Math.PI / 4
 
+  mat4.identity ground
+
   mat4.identity modelA
   mat4.translate modelA, modelA, [ -0.5, 0.5, 0 ]
   mat4.rotateZ modelA, modelA, -1
@@ -250,11 +236,14 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     depth: 1
 
   groundShape
-    camera: camera
-    light: light
     colorA: [ 0.8, 0.8, 0.8, 1 ]
     colorB: [ 0.98, 0.98, 0.98, 1 ]
-    shadowMap: shadowFBO
+  , ->
+    renderView
+      model: ground
+      camera: camera
+      light: light
+      shadowMap: shadowFBO
 
   if personShape then personShape ->
     renderView
