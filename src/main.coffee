@@ -181,22 +181,24 @@ withShadowFBO = regl
   framebuffer: shadowFBO
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 0, 4, -4
+  vec3.set cameraPosition, 10, 10, -15
 
-  mat4.perspective camera, 45, viewportWidth / viewportHeight, 1, 20
-  mat4.rotateX camera, camera, -0.8
+  mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
+  mat4.rotateX camera, camera, -Math.PI / 4
+  mat4.rotateZ camera, camera, Math.PI / 4
   mat4.translate camera, camera, cameraPosition
 
   mat4.ortho light, -12, 12, -12, 12, -LIGHT_MAP_DEPTH_EXTENT, LIGHT_MAP_DEPTH_EXTENT
-  mat4.rotateX light, light, -0.2 - 0.6 * (Math.sin(time / 7) * 0.5 + 0.5)
-  mat4.rotateZ light, light, time / 2.5
+  mat4.rotateX light, light, -0.6
+  mat4.rotateZ light, light, 3 * Math.PI / 4
 
   mat4.identity modelA
+  mat4.translate modelA, modelA, [ -0.5, 0.5, 0 ]
   mat4.rotateZ modelA, modelA, -1
 
   mat4.identity modelB
-  mat4.translate modelB, modelB, [ 0.6, -0.8, 0 ]
-  mat4.rotateZ modelB, modelB, -2
+  mat4.translate modelB, modelB, [ 0.4, 0.1, 0 ]
+  mat4.rotateZ modelB, modelB, -3
 
   withShadowFBO ->
     regl.clear
