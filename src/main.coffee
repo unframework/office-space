@@ -48,11 +48,8 @@ groundShape = regl
     ]
 
   uniforms:
-    camera: regl.prop('camera')
-    light: regl.prop('light')
-    colorA: regl.prop('colorA')
-    colorB: regl.prop('colorB')
-    shadowMap: regl.prop('shadowMap')
+    colorA: regl.prop 'colorA'
+    colorB: regl.prop 'colorB'
 
   primitive: 'triangle fan'
   count: 4
