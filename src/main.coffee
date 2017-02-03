@@ -139,6 +139,7 @@ renderView = regl
   vert: regl.context 'vert'
   frag: regl.context 'frag'
 
+withViewScope = regl
   uniforms:
     camera: regl.prop 'camera'
     light: regl.prop 'light'
@@ -181,11 +182,28 @@ renderDepth = regl
     }
   '''
 
+withDepthScope = regl
   uniforms:
     light: regl.prop 'light'
 
-withShadowFBO = regl
   framebuffer: shadowFBO
+
+renderClayScene = (camera, light, cb) ->
+  withDepthScope
+    light: light
+  , ->
+    regl.clear
+      color: [ 1, 1, 1, 1 ]
+      depth: 1
+
+    cb (isShadowing) -> (-> if isShadowing then renderDepth())
+
+  withViewScope
+    camera: camera
+    light: light
+    shadowMap: shadowFBO
+  , ->
+    cb (isShadowing) -> (-> renderView())
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
   vec3.set cameraPosition, 10, 10, -15
@@ -207,36 +225,17 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.translate modelB, modelB, [ 0.4, 0.1, 0 ]
   mat4.rotateZ modelB, modelB, -3
 
-  withShadowFBO ->
-    regl.clear
-      color: [ 1, 1, 1, 1 ]
-      depth: 1
-
-    if personShape then personShape [
-      { model: modelA }
-      { model: modelB }
-    ], ->
-      renderDepth
-        light: light
-
   regl.clear
     color: [ 1, 1, 1, 1 ]
     depth: 1
 
-  groundShape
-    colorA: [ 0.8, 0.8, 0.8, 1 ]
-    colorB: [ 0.98, 0.98, 0.98, 1 ]
-  , ->
-    renderView
-      camera: camera
-      light: light
-      shadowMap: shadowFBO
+  renderClayScene camera, light, (renderer) ->
+    groundShape
+      colorA: [ 0.8, 0.8, 0.8, 1 ]
+      colorB: [ 0.98, 0.98, 0.98, 1 ]
+    , renderer false
 
-  if personShape then personShape [
-    { model: modelA, colorTop: [ 1, 1, 0.8, 1 ], colorBottom: [ 1, 0.8, 1, 1 ] }
-    { model: modelB, colorTop: [ 1, 0.8, 1, 1 ], colorBottom: [ 0.8, 1, 1, 1 ] }
-  ], ->
-    renderView
-      camera: camera
-      light: light
-      shadowMap: shadowFBO
+    if personShape then personShape [
+      { model: modelA, colorTop: [ 1, 1, 0.8, 1 ], colorBottom: [ 1, 0.8, 1, 1 ] }
+      { model: modelB, colorTop: [ 1, 0.8, 1, 1 ], colorBottom: [ 0.8, 1, 1, 1 ] }
+    ], renderer true
