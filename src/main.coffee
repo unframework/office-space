@@ -27,7 +27,7 @@ groundShape = regl
       }
 
       void clayNormal() {
-        applyNormal(vec3(0, 0, 1));
+        applyNormal(vec4(0, 0, 1, 0));
       }
     '''
 
@@ -59,7 +59,6 @@ groundShape = regl
 
 cameraPosition = vec3.create()
 camera = mat4.create()
-ground = mat4.create()
 modelA = mat4.create()
 modelB = mat4.create()
 
@@ -80,20 +79,17 @@ renderView = regl
       // standard material code
       uniform mediump mat4 camera;
       uniform mediump mat4 light;
-      uniform mediump mat4 model;
 
       varying vec4 fShadowCoord;
       varying vec4 fNormal;
 
-      void applyPosition(vec4 localPosition) {
-        vec4 worldPosition = model * localPosition;
-
+      void applyPosition(vec4 worldPosition) {
         gl_Position = camera * worldPosition;
         fShadowCoord = light * worldPosition;
       }
 
-      void applyNormal(vec3 localNormal) {
-        fNormal = model * vec4(localNormal, 0); // normal in world space without translation
+      void applyNormal(vec4 worldNormal) {
+        fNormal = worldNormal;
       }
 
       // shape-specific code
@@ -147,7 +143,6 @@ renderView = regl
   frag: regl.context 'frag'
 
   uniforms:
-    model: regl.prop 'model'
     camera: regl.prop 'camera'
     light: regl.prop 'light'
     shadowMap: regl.prop 'shadowMap'
@@ -155,16 +150,16 @@ renderView = regl
 renderDepth = regl
   context:
     vert: (context) -> '''
-      uniform mat4 light, model;
+      uniform mat4 light;
 
       varying vec4 fPosition;
 
-      void applyPosition(vec4 localPosition) {
-        fPosition = light * model * localPosition;
+      void applyPosition(vec4 worldPosition) {
+        fPosition = light * worldPosition;
         gl_Position = fPosition;
       }
 
-      void applyNormal(vec3 localNormal) {
+      void applyNormal(vec4 worldNormal) {
         // not in use
       }
 
@@ -190,7 +185,6 @@ renderDepth = regl
   '''
 
   uniforms:
-    model: regl.prop 'model'
     light: regl.prop 'light'
 
 withShadowFBO = regl
@@ -208,8 +202,6 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX light, light, -0.6
   mat4.rotateZ light, light, 3 * Math.PI / 4
 
-  mat4.identity ground
-
   mat4.identity modelA
   mat4.translate modelA, modelA, [ -0.5, 0.5, 0 ]
   mat4.rotateZ modelA, modelA, -1
@@ -223,12 +215,11 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       color: [ 1, 1, 1, 1 ]
       depth: 1
 
-    if personShape then personShape ->
+    if personShape then personShape [
+      { model: modelA }
+      { model: modelB }
+    ], ->
       renderDepth
-        model: modelA
-        light: light
-      renderDepth
-        model: modelB
         light: light
 
   regl.clear
@@ -240,19 +231,15 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     colorB: [ 0.98, 0.98, 0.98, 1 ]
   , ->
     renderView
-      model: ground
       camera: camera
       light: light
       shadowMap: shadowFBO
 
-  if personShape then personShape ->
+  if personShape then personShape [
+    { model: modelA, colorTop: [ 1, 1, 0.8, 1 ], colorBottom: [ 1, 0.8, 1, 1 ] }
+    { model: modelB, colorTop: [ 1, 0.8, 1, 1 ], colorBottom: [ 0.8, 1, 1, 1 ] }
+  ], ->
     renderView
-      model: modelA
-      camera: camera
-      light: light
-      shadowMap: shadowFBO
-    renderView
-      model: modelB
       camera: camera
       light: light
       shadowMap: shadowFBO

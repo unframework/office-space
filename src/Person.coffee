@@ -22,6 +22,7 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
   resolve regl
     context:
       clayVert: '''
+        uniform mediump mat4 model;
         uniform mediump vec4 colorTop;
         uniform mediump vec4 colorBottom;
         attribute vec4 position;
@@ -37,11 +38,11 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
         }
 
         void clayPosition() {
-          applyPosition(position);
+          applyPosition(model * position);
         }
 
         void clayNormal() {
-          applyNormal(normal);
+          applyNormal(model * vec4(normal, 0)); // normal in world space without translation
         }
       '''
 
@@ -120,8 +121,10 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
       )
 
     uniforms:
-      colorTop: [ 1, 1, 0.8, 1 ]
-      colorBottom: [ 1, 0.8, 1, 1 ]
+      model: regl.prop 'model'
+
+      colorTop: regl.prop 'colorTop'
+      colorBottom: regl.prop 'colorBottom'
 
       texture: regl.texture
         data: texture
