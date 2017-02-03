@@ -1,9 +1,9 @@
 mat4 = require('gl-matrix').mat4
-
-LIGHT_MAP_DEPTH_EXTENT = 12
+vec4 = require('gl-matrix').vec4
 
 module.exports = (regl) ->
   light = mat4.create()
+  lightExtent = vec4.create()
 
   shadowFBO = regl.framebuffer
     color: regl.texture
@@ -91,6 +91,7 @@ module.exports = (regl) ->
       frag: (context) -> '''
         // standard material code
         uniform mediump mat4 light;
+        uniform mediump float lightProjectionDepth;
         uniform sampler2D shadowMap;
         varying mediump vec4 fShadowCoord;
         varying mediump vec4 fNormal;
@@ -104,7 +105,7 @@ module.exports = (regl) ->
 
         void applyPigment(vec4 pigment) {
           vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
-          float lightCosTheta = -float(''' + LIGHT_MAP_DEPTH_EXTENT + ''') * (light * fNormal).z;
+          float lightCosTheta = -lightProjectionDepth * (light * fNormal).z;
           float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
 
           float bias = max(0.03 * (1.0 - lightCosTheta), 0.005);
@@ -130,12 +131,18 @@ module.exports = (regl) ->
     uniforms:
       camera: regl.prop 'camera'
       light: regl.prop 'light'
+      lightProjectionDepth: regl.prop 'lightProjectionDepth'
       shadowMap: regl.prop 'shadowMap'
 
   # return the scene renderer
-  (camera, lightTransform, cb) ->
-    mat4.ortho light, -12, 12, -12, 12, -LIGHT_MAP_DEPTH_EXTENT, LIGHT_MAP_DEPTH_EXTENT
-    mat4.mul light, light, lightTransform
+  (camera, lightProjection, lightTransform, cb) ->
+    # pre-calculate the non-uniform projection depth of the light
+    # (this helps isolate uniform light direction when calculating world surface incidence angle)
+    vec4.set lightExtent, 0, 0, 1, 0
+    vec4.transformMat4 lightExtent, lightExtent, lightProjection
+    lightProjectionDepth = 1 / vec4.length(lightExtent)
+
+    mat4.mul light, lightProjection, lightTransform
 
     withDepthScope
       light: light
@@ -149,6 +156,7 @@ module.exports = (regl) ->
     withViewScope
       camera: camera
       light: light
+      lightProjectionDepth: lightProjectionDepth
       shadowMap: shadowFBO
     , ->
       cb (isShadowing) -> (-> renderView())

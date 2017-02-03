@@ -59,7 +59,8 @@ camera = mat4.create()
 modelA = mat4.create()
 modelB = mat4.create()
 
-light = mat4.create()
+lightProjection = mat4.create()
+lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
@@ -71,9 +72,11 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateZ camera, camera, Math.PI / 4
   mat4.translate camera, camera, cameraPosition
 
-  mat4.identity light
-  mat4.rotateX light, light, -0.6
-  mat4.rotateZ light, light, 3 * Math.PI / 4
+  mat4.ortho lightProjection, -12, 12, -12, 12, -12, 12
+
+  mat4.identity lightTransform
+  mat4.rotateX lightTransform, lightTransform, -0.6
+  mat4.rotateZ lightTransform, lightTransform, 3 * Math.PI / 4
 
   mat4.identity modelA
   mat4.translate modelA, modelA, [ -0.5, 0.5, 0 ]
@@ -87,7 +90,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     color: [ 1, 1, 1, 1 ]
     depth: 1
 
-  renderClayScene camera, light, (renderer) ->
+  renderClayScene camera, lightProjection, lightTransform, (renderer) ->
     groundShape
       colorA: [ 0.8, 0.8, 0.8, 1 ]
       colorB: [ 0.98, 0.98, 0.98, 1 ]
