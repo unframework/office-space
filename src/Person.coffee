@@ -20,6 +20,41 @@ textureLoad = new Promise (resolve) ->
 
 module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -> parseOBJ createReadableFromData(MESH_DATA), (err, mesh) ->
   resolve regl
+    context:
+      clayVert: '''
+        uniform mediump vec4 colorTop;
+        uniform mediump vec4 colorBottom;
+        attribute vec4 position;
+        attribute vec3 normal;
+        attribute vec2 uv;
+
+        varying vec4 fColor;
+        varying vec2 fUV;
+
+        void clayPigment() {
+          fColor = mix(colorBottom, colorTop, position.z);
+          fUV = uv;
+        }
+
+        void clayPosition() {
+          applyPosition(position);
+        }
+
+        void clayNormal() {
+          applyNormal(normal);
+        }
+      '''
+
+      clayFrag: '''
+        uniform sampler2D texture;
+        varying mediump vec4 fColor;
+        varying mediump vec2 fUV;
+
+        void clayPigment() {
+          applyPigment(texture2D(texture, fUV) * fColor);
+        }
+      '''
+
     attributes:
       position: regl.buffer (
         for tri in mesh.facePositions
@@ -85,6 +120,9 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
       )
 
     uniforms:
+      colorTop: [ 1, 1, 0.8, 1 ]
+      colorBottom: [ 1, 0.8, 1, 1 ]
+
       texture: regl.texture
         data: texture
         flipY: true

@@ -88,75 +88,76 @@ shadowFBO = regl.framebuffer
   depth: true
 
 renderView = regl
-  vert: '''
-    // standard material code
-    uniform mediump mat4 camera;
-    uniform mediump mat4 light;
-    uniform mediump mat4 model;
+  context:
+    vert: (context) -> '''
+      // standard material code
+      uniform mediump mat4 camera;
+      uniform mediump mat4 light;
+      uniform mediump mat4 model;
 
-    varying vec4 fShadowCoord;
-    varying vec4 fNormal;
+      varying vec4 fShadowCoord;
+      varying vec4 fNormal;
 
-    void applyMaterial(vec4 localPosition, vec3 localNormal) {
-      vec4 worldPosition = model * localPosition;
+      void applyPosition(vec4 localPosition) {
+        vec4 worldPosition = model * localPosition;
 
-      gl_Position = camera * worldPosition;
-      fShadowCoord = light * worldPosition;
-      fNormal = model * vec4(localNormal, 0); // normal in world space without translation
-    }
+        gl_Position = camera * worldPosition;
+        fShadowCoord = light * worldPosition;
+      }
 
-    // shape-specific code
-    uniform mediump vec4 colorTop;
-    uniform mediump vec4 colorBottom;
-    attribute vec4 position;
-    attribute vec3 normal;
-    attribute vec2 uv;
+      void applyNormal(vec3 localNormal) {
+        fNormal = model * vec4(localNormal, 0); // normal in world space without translation
+      }
 
-    varying vec4 fColor;
-    varying vec2 fUV;
+      // shape-specific code
 
-    void main() {
-      fColor = mix(colorBottom, colorTop, position.z);
-      fUV = uv;
+      ''' + context.clayVert + '''
 
-      applyMaterial(position, normal);
-    }
-  '''
+      // invoke standard entry points
+      void main() {
+        clayPigment();
+        clayPosition();
+        clayNormal();
+      }
+    '''
 
-  frag: '''
-    // standard material code
-    uniform mediump mat4 light;
-    uniform sampler2D shadowMap;
-    varying mediump vec4 fShadowCoord;
-    varying mediump vec4 fNormal;
+    frag: (context) -> '''
+      // standard material code
+      uniform mediump mat4 light;
+      uniform sampler2D shadowMap;
+      varying mediump vec4 fShadowCoord;
+      varying mediump vec4 fNormal;
 
-    float shadowSample(vec2 co, float z, float bias) {
-      float a = texture2D(shadowMap, co).z;
-      float b = fShadowCoord.z;
+      float shadowSample(vec2 co, float z, float bias) {
+        float a = texture2D(shadowMap, co).z;
+        float b = fShadowCoord.z;
 
-      return step(b - bias, a);
-    }
+        return step(b - bias, a);
+      }
 
-    void applyMaterial(vec4 pigment) {
-      vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
-      float lightCosTheta = -float(''' + LIGHT_MAP_DEPTH_EXTENT + ''') * (light * fNormal).z;
-      float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
+      void applyPigment(vec4 pigment) {
+        vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
+        float lightCosTheta = -float(''' + LIGHT_MAP_DEPTH_EXTENT + ''') * (light * fNormal).z;
+        float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
 
-      float bias = max(0.03 * (1.0 - lightCosTheta), 0.005);
-      float v = shadowSample(co, fShadowCoord.z, bias);
+        float bias = max(0.03 * (1.0 - lightCosTheta), 0.005);
+        float v = shadowSample(co, fShadowCoord.z, bias);
 
-      gl_FragColor = pigment * vec4(vec3(0.8 + 0.2 * lightDiffuseAmount * v), 1.0);
-    }
+        gl_FragColor = pigment * vec4(vec3(0.8 + 0.2 * lightDiffuseAmount * v), 1.0);
+      }
 
-    // shape-specific code
-    uniform sampler2D texture;
-    varying mediump vec4 fColor;
-    varying mediump vec2 fUV;
+      // shape-specific code
 
-    void main() {
-      applyMaterial(texture2D(texture, fUV) * fColor);
-    }
-  '''
+      ''' + context.clayFrag + '''
+
+      // invoke standard entry points
+      void main() {
+        clayPigment();
+      }
+    '''
+
+  vert: regl.context 'vert'
+  frag: regl.context 'frag'
 
   uniforms:
     model: regl.prop 'model'
@@ -168,22 +169,37 @@ renderView = regl
     colorBottom: [ 1, 0.8, 1, 1 ]
 
 renderDepth = regl
-  vert: '''
-    attribute vec4 position;
-    uniform mat4 light, model;
+  context:
+    vert: (context) -> '''
+      uniform mat4 light, model;
 
-    varying vec3 fPosition;
+      varying vec4 fPosition;
 
-    void main() {
-      vec4 pos = light * model * position;
-      gl_Position = pos;
-      fPosition = pos.xyz;
-    }
-  '''
+      void applyPosition(vec4 localPosition) {
+        fPosition = light * model * localPosition;
+        gl_Position = fPosition;
+      }
+
+      void applyNormal(vec3 localNormal) {
+        // not in use
+      }
+
+      // shape-specific code
+
+      ''' + context.clayVert + '''
+
+      // invoke standard entry points
+      void main() {
+        clayPosition();
+      }
+    '''
+
+  vert: regl.context 'vert'
 
   frag: '''
-    varying mediump vec3 fPosition;
+    varying mediump vec4 fPosition;
 
+    // ignore shape-specific pigmentation
     void main () {
       gl_FragColor = vec4(vec3(fPosition.z), 1.0);
     }
