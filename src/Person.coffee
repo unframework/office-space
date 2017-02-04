@@ -5,6 +5,7 @@ parseOBJ = require('parse-obj')
 TEXTURE_DATA = fs.readFileSync(__dirname + '/Person.png', 'binary')
 MESH_DATA = fs.readFileSync __dirname + '/Person.objdata'
 MESH_SCALE = 1
+MESH_HEIGHT = 1.5
 
 createReadableFromData = (data) ->
   fileStream = new Readable read: -> # no-op read
@@ -21,8 +22,12 @@ textureLoad = new Promise (resolve) ->
 module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -> parseOBJ createReadableFromData(MESH_DATA), (err, mesh) ->
   resolve regl
     context:
+      modelTop: (context, props) ->
+        props.modelTop or props.model
+
       clayVert: '''
         uniform mediump mat4 model;
+        uniform mediump mat4 modelTop;
         uniform mediump vec4 colorTop;
         uniform mediump vec4 colorBottom;
         attribute vec4 position;
@@ -33,14 +38,21 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
         varying vec4 fColor;
         varying vec2 fUV;
 
+        vec4 interp(vec4 item) {
+          vec4 deformedTop = modelTop * item;
+          vec4 deformedBottom = model * item;
+
+          return mix(deformedBottom, deformedTop, position.z / ''' + MESH_HEIGHT + ''');
+        }
+
         void claySetup() {
-          fNormal = model * vec4(normal, 0); // normal in world space without translation
+          fNormal = interp(vec4(normal, 0)); // normal in world space without translation
           fColor = mix(colorBottom, colorTop, position.z);
           fUV = uv;
         }
 
         vec4 clayPosition() {
-          return model * position;
+          return interp(position);
         }
 
       '''
@@ -126,6 +138,7 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
 
     uniforms:
       model: regl.prop 'model'
+      modelTop: regl.context 'modelTop'
 
       colorTop: regl.prop 'colorTop'
       colorBottom: regl.prop 'colorBottom'

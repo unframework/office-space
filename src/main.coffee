@@ -178,6 +178,16 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     orthoBoxShape orthoBoxes, renderer true
 
     if personShape then personShape [
-      { model: modelA, colorTop: [ 1, 1, 0.8, 1 ], colorBottom: [ 1, 0.8, 1, 1 ] }
-      { model: modelB, colorTop: [ 1, 0.8, 1, 1 ], colorBottom: [ 0.8, 1, 1, 1 ] }
+      {
+        model: modelA
+        modelTop: mat4.rotateY(mat4.create(), modelA, 0.04 + 0.05 * Math.sin(time * 6.1))
+        colorTop: [ 1, 1, 0.8, 1 ]
+        colorBottom: [ 1, 0.8, 1, 1 ]
+      }
+      {
+        model: modelB
+        modelTop: mat4.rotateZ(mat4.create(), modelB, 0.2 * Math.sin(time * 5.3))
+        colorTop: [ 1, 0.8, 1, 1 ]
+        colorBottom: [ 0.8, 1, 1, 1 ]
+      }
     ], renderer true
