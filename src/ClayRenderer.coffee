@@ -5,7 +5,16 @@ vec4 = require('gl-matrix').vec4
 # - http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/ (google search "opengl shadows")
 # - https://github.com/regl-project/regl/blob/gh-pages/example/shadow_map.js
 
-generateDepthVertShader = (definition) ->
+CACHE_KEY_PREFIX = '__clay_cache' + Math.round(Math.random() * 1000000)
+CACHE_DEPTH_VERT_KEY = CACHE_KEY_PREFIX + '_dv'
+CACHE_VIEW_VERT_KEY = CACHE_KEY_PREFIX + '_vv'
+CACHE_VIEW_FRAG_KEY = CACHE_KEY_PREFIX + '_vf'
+
+cachingGenerator = (cacheKey, cb) ->
+  (definition) ->
+    definition[cacheKey] or (definition[cacheKey] = cb definition)
+
+generateDepthVertShader = cachingGenerator CACHE_DEPTH_VERT_KEY, (definition) ->
   '''
     // shape-specific code
 
@@ -30,7 +39,7 @@ generateDepthVertShader = (definition) ->
     }
   '''
 
-generateViewVertShader = (definition) ->
+generateViewVertShader = cachingGenerator CACHE_VIEW_VERT_KEY, (definition) ->
   '''
     // shape-specific code
 
@@ -52,7 +61,7 @@ generateViewVertShader = (definition) ->
     }
   '''
 
-generateViewFragShader = (definition) ->
+generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
   '''
     // shape-specific code
 
