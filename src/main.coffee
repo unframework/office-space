@@ -54,10 +54,14 @@ groundShape = regl
   primitive: 'triangle fan'
   count: 4
 
-boxShape = regl
+CUBEWALL_THICKNESS = 0.04
+CUBEWALL_HEIGHT = 1.2
+
+orthoBoxShape = regl
   context:
     clayVert: '''
-      uniform mediump mat4 model;
+      uniform mediump vec3 origin;
+      uniform mediump vec3 size;
       attribute vec3 position;
 
       varying vec3 fNormal;
@@ -67,27 +71,27 @@ boxShape = regl
       }
 
       vec4 clayPosition() {
-        return model * vec4(position, 1);
+        return vec4(origin + step(vec3(0), position) * size, 1);
       }
     '''
 
     clayFrag: '''
-      uniform mediump mat4 model;
       varying mediump vec3 fNormal;
 
       vec4 clayNormal() {
         vec3 mags = floor(abs(fNormal) + 0.0001);
         mags = mags / (mags.x + mags.y + mags.z); // "poor man's normalization" around cusps
-        return model * vec4(mags * sign(fNormal), 0);
+        return vec4(mags * sign(fNormal), 0);
       }
 
       vec4 clayPigment() {
-        return vec4(floor(abs(fNormal) + 0.0001) * sign(fNormal) * 0.5 + 0.5, 1);
+        return vec4(0.85, 0.85, 0.85, 1);
       }
     '''
 
   uniforms:
-    model: regl.prop 'model'
+    origin: regl.prop 'origin'
+    size: regl.prop 'size'
 
   attributes:
     position: regl.buffer [
@@ -116,7 +120,6 @@ boxShape = regl
 
 cameraPosition = vec3.create()
 camera = mat4.create()
-box = mat4.create()
 modelA = mat4.create()
 modelB = mat4.create()
 
@@ -124,6 +127,21 @@ lightProjection = mat4.create()
 lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
+
+orthoBoxes = [].concat ([].concat (
+  for r in [ -1 .. 1 ]
+    for n in [ -3 .. 3 ]
+      for [ x, y, dx, dy ] in [
+        [ n * 2 + 0, r * 6 + -1, 1, 0 ]
+        [ n * 2 + 1, r * 6 + -1, 0, 4 ]
+        [ n * 2 + -1, r * 6 + 1, 2, 0 ]
+        [ n * 2 + 0, r * 6 + 3, 1, 0 ]
+      ]
+        {
+          origin: vec3.fromValues(x - CUBEWALL_THICKNESS / 2, y - CUBEWALL_THICKNESS / 2, 0)
+          size: vec3.fromValues(dx + CUBEWALL_THICKNESS, dy + CUBEWALL_THICKNESS, CUBEWALL_HEIGHT)
+        }
+)...)...
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
   vec3.set cameraPosition, 10, 10, -15
@@ -138,10 +156,6 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.identity lightTransform
   mat4.rotateX lightTransform, lightTransform, -0.6
   mat4.rotateZ lightTransform, lightTransform, 3 * Math.PI / 4
-
-  mat4.identity box
-  mat4.translate box, box, [ 2.5, 0, 1 ]
-  mat4.rotateZ box, box, time
 
   mat4.identity modelA
   mat4.translate modelA, modelA, [ -0.5, 0.5, 0 ]
@@ -161,9 +175,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       colorB: [ 0.98, 0.98, 0.98, 1 ]
     , renderer false
 
-    boxShape
-      model: box
-    , renderer true
+    orthoBoxShape orthoBoxes, renderer true
 
     if personShape then personShape [
       { model: modelA, colorTop: [ 1, 1, 0.8, 1 ], colorBottom: [ 1, 0.8, 1, 1 ] }

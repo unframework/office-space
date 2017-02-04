@@ -109,7 +109,7 @@ module.exports = (regl) ->
           float lightCosTheta = -lightProjectionDepth * (light * clayNormal()).z;
           float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
 
-          float bias = max(0.03 * (1.0 - lightCosTheta), 0.005);
+          float bias = max(0.01 * (1.0 - lightCosTheta), 0.005);
           float v = shadowSample(co, fShadowCoord.z, bias);
 
           gl_FragColor = pigment * vec4(vec3(0.8 + 0.2 * lightDiffuseAmount * v), 1.0);
