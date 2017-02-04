@@ -54,8 +54,69 @@ groundShape = regl
   primitive: 'triangle fan'
   count: 4
 
+boxShape = regl
+  context:
+    clayVert: '''
+      uniform mediump mat4 model;
+      attribute vec3 position;
+
+      varying vec3 fNormal;
+
+      void claySetup() {
+        fNormal = position.xyz;
+      }
+
+      vec4 clayPosition() {
+        return model * vec4(position, 1);
+      }
+    '''
+
+    clayFrag: '''
+      uniform mediump mat4 model;
+      varying mediump vec3 fNormal;
+
+      vec4 clayNormal() {
+        vec3 mags = floor(abs(fNormal) + 0.0001);
+        mags = mags / (mags.x + mags.y + mags.z); // "poor man's normalization" around cusps
+        return model * vec4(mags * sign(fNormal), 0);
+      }
+
+      vec4 clayPigment() {
+        return vec4(floor(abs(fNormal) + 0.0001) * sign(fNormal) * 0.5 + 0.5, 1);
+      }
+    '''
+
+  uniforms:
+    model: regl.prop 'model'
+
+  attributes:
+    position: regl.buffer [
+      [ -1, -1, -1 ]
+      [ -1, 1, -1 ]
+      [ 1, -1, -1 ]
+      [ 1, 1, -1 ]
+      [ 1, -1, 1 ]
+      [ 1, 1, 1 ]
+      [ -1, -1, 1 ]
+      [ -1, 1, 1 ]
+      # strip split (draws two dummy triangles inside)
+      [ 1, -1, -1 ]
+      [ 1, -1, 1 ]
+      [ -1, -1, -1 ]
+      [ -1, -1, 1 ]
+      [ -1, 1, -1 ]
+      [ -1, 1, 1 ]
+      [ 1, 1, -1 ]
+      [ 1, 1, 1 ]
+    ]
+
+  cull: enable: true
+  primitive: 'triangle strip'
+  count: 16
+
 cameraPosition = vec3.create()
 camera = mat4.create()
+box = mat4.create()
 modelA = mat4.create()
 modelB = mat4.create()
 
@@ -78,6 +139,10 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX lightTransform, lightTransform, -0.6
   mat4.rotateZ lightTransform, lightTransform, 3 * Math.PI / 4
 
+  mat4.identity box
+  mat4.translate box, box, [ 2.5, 0, 1 ]
+  mat4.rotateZ box, box, time
+
   mat4.identity modelA
   mat4.translate modelA, modelA, [ -0.5, 0.5, 0 ]
   mat4.rotateZ modelA, modelA, -1
@@ -95,6 +160,10 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       colorA: [ 0.8, 0.8, 0.8, 1 ]
       colorB: [ 0.98, 0.98, 0.98, 1 ]
     , renderer false
+
+    boxShape
+      model: box
+    , renderer true
 
     if personShape then personShape [
       { model: modelA, colorTop: [ 1, 1, 0.8, 1 ], colorBottom: [ 1, 0.8, 1, 1 ] }
