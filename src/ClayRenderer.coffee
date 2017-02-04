@@ -17,26 +17,26 @@ module.exports = (regl) ->
   renderDepth = regl
     context:
       vert: (context) -> '''
+        // shape-specific code
+
+        ''' + context.clayVert + '''
+
         uniform mat4 light;
 
         varying vec4 fPosition;
 
         void applyPosition(vec4 worldPosition) {
-          fPosition = light * worldPosition;
-          gl_Position = fPosition;
         }
 
         void applyNormal(vec4 worldNormal) {
           // not in use
         }
 
-        // shape-specific code
-
-        ''' + context.clayVert + '''
-
         // invoke standard entry points
         void main() {
-          clayPosition();
+          vec4 worldPosition = clayPosition();
+          fPosition = light * worldPosition;
+          gl_Position = fPosition;
         }
       '''
 
@@ -60,6 +60,10 @@ module.exports = (regl) ->
   renderView = regl
     context:
       vert: (context) -> '''
+        // shape-specific code
+
+        ''' + context.clayVert + '''
+
         // standard material code
         uniform mediump mat4 camera;
         uniform mediump mat4 light;
@@ -68,27 +72,29 @@ module.exports = (regl) ->
         varying vec4 fNormal;
 
         void applyPosition(vec4 worldPosition) {
-          gl_Position = camera * worldPosition;
-          fShadowCoord = light * worldPosition;
         }
 
         void applyNormal(vec4 worldNormal) {
-          fNormal = worldNormal;
         }
-
-        // shape-specific code
-
-        ''' + context.clayVert + '''
 
         // invoke standard entry points
         void main() {
-          clayPigment();
-          clayPosition();
-          clayNormal();
+          claySetup();
+
+          vec4 worldPosition = clayPosition();
+          gl_Position = camera * worldPosition;
+          fShadowCoord = light * worldPosition;
+
+          vec4 worldNormal = clayNormal();
+          fNormal = worldNormal;
         }
       '''
 
       frag: (context) -> '''
+        // shape-specific code
+
+        ''' + context.clayFrag + '''
+
         // standard material code
         uniform mediump mat4 light;
         uniform mediump float lightProjectionDepth;
@@ -103,7 +109,10 @@ module.exports = (regl) ->
           return step(b - bias, a);
         }
 
-        void applyPigment(vec4 pigment) {
+        // invoke standard entry points
+        void main() {
+          vec4 pigment = clayPigment();
+
           vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
           float lightCosTheta = -lightProjectionDepth * (light * fNormal).z;
           float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
@@ -112,15 +121,6 @@ module.exports = (regl) ->
           float v = shadowSample(co, fShadowCoord.z, bias);
 
           gl_FragColor = pigment * vec4(vec3(0.8 + 0.2 * lightDiffuseAmount * v), 1.0);
-        }
-
-        // shape-specific code
-
-        ''' + context.clayFrag + '''
-
-        // invoke standard entry points
-        void main() {
-          clayPigment();
         }
       '''
 

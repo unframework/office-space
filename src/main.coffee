@@ -18,24 +18,24 @@ groundShape = regl
 
       varying vec4 fColor;
 
-      void clayPigment() {
+      void claySetup() {
         fColor = mix(colorA, colorB, (position.y + 8.0) / 16.0);
       }
 
-      void clayPosition() {
-        applyPosition(vec4(position, 0, 1));
+      vec4 clayPosition() {
+        return vec4(position, 0, 1);
       }
 
-      void clayNormal() {
-        applyNormal(vec4(0, 0, 1, 0));
+      vec4 clayNormal() {
+        return vec4(0, 0, 1, 0);
       }
     '''
 
     clayFrag: '''
       varying mediump vec4 fColor;
 
-      void clayPigment() {
-        applyPigment(fColor);
+      vec4 clayPigment() {
+        return fColor;
       }
     '''
 

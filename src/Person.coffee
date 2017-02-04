@@ -32,17 +32,17 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
         varying vec4 fColor;
         varying vec2 fUV;
 
-        void clayPigment() {
+        void claySetup() {
           fColor = mix(colorBottom, colorTop, position.z);
           fUV = uv;
         }
 
-        void clayPosition() {
-          applyPosition(model * position);
+        vec4 clayPosition() {
+          return model * position;
         }
 
-        void clayNormal() {
-          applyNormal(model * vec4(normal, 0)); // normal in world space without translation
+        vec4 clayNormal() {
+          return model * vec4(normal, 0); // normal in world space without translation
         }
       '''
 
@@ -51,8 +51,8 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
         varying mediump vec4 fColor;
         varying mediump vec2 fUV;
 
-        void clayPigment() {
-          applyPigment(texture2D(texture, fUV) * fColor);
+        vec4 clayPigment() {
+          return texture2D(texture, fUV) * fColor;
         }
       '''
 
