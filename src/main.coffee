@@ -144,7 +144,7 @@ orthoBoxes = [].concat ([].concat (
 )...)...
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 10, 10, -15
+  vec3.set cameraPosition, 10, 10, -15 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
   mat4.rotateX camera, camera, -Math.PI / 4
