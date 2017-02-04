@@ -57,8 +57,11 @@ module.exports = (regl) ->
 
     framebuffer: shadowFBO
 
+  cnt = 0
+
   renderView = regl
     context:
+      # @todo cache the concatenation output itself
       vert: (context) -> '''
         // shape-specific code
 
@@ -70,12 +73,6 @@ module.exports = (regl) ->
 
         varying vec4 fShadowCoord;
         varying vec4 fNormal;
-
-        void applyPosition(vec4 worldPosition) {
-        }
-
-        void applyNormal(vec4 worldNormal) {
-        }
 
         // invoke standard entry points
         void main() {
