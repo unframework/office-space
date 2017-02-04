@@ -1,6 +1,9 @@
 mat4 = require('gl-matrix').mat4
 vec4 = require('gl-matrix').vec4
 
+# references:
+# - http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/ (google search "opengl shadows")
+# - https://github.com/regl-project/regl/blob/gh-pages/example/shadow_map.js
 module.exports = (regl) ->
   light = mat4.create()
   lightExtent = vec4.create()

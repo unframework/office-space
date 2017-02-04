@@ -5,7 +5,6 @@ regl = require('regl')
 
 ClayRenderer = require('./ClayRenderer.coffee')
 
-# code inspired by https://github.com/regl-project/regl/blob/gh-pages/example/shadow_map.js
 personShape = null
 require('./Person.coffee')(regl).then (v) -> personShape = v
 
