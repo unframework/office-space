@@ -10,33 +10,34 @@ require('./Person.coffee')(regl).then (v) -> personShape = v
 
 groundShape = regl
   context:
-    clayVert: '''
-      uniform vec4 colorA;
-      uniform vec4 colorB;
-      attribute vec2 position;
+    clay:
+      vert: '''
+        uniform vec4 colorA;
+        uniform vec4 colorB;
+        attribute vec2 position;
 
-      varying vec4 fColor;
+        varying vec4 fColor;
 
-      void claySetup() {
-        fColor = mix(colorA, colorB, (position.y + 8.0) / 16.0);
-      }
+        void claySetup() {
+          fColor = mix(colorA, colorB, (position.y + 8.0) / 16.0);
+        }
 
-      vec4 clayPosition() {
-        return vec4(position, 0, 1);
-      }
-    '''
+        vec4 clayPosition() {
+          return vec4(position, 0, 1);
+        }
+      '''
 
-    clayFrag: '''
-      varying mediump vec4 fColor;
+      frag: '''
+        varying mediump vec4 fColor;
 
-      vec4 clayNormal() {
-        return vec4(0, 0, 1, 0);
-      }
+        vec4 clayNormal() {
+          return vec4(0, 0, 1, 0);
+        }
 
-      vec4 clayPigment() {
-        return fColor;
-      }
-    '''
+        vec4 clayPigment() {
+          return fColor;
+        }
+      '''
 
   attributes:
     position: regl.buffer [
@@ -58,35 +59,36 @@ CUBEWALL_HEIGHT = 1.2
 
 orthoBoxShape = regl
   context:
-    clayVert: '''
-      uniform mediump vec3 origin;
-      uniform mediump vec3 size;
-      attribute vec3 position;
+    clay:
+      vert: '''
+        uniform mediump vec3 origin;
+        uniform mediump vec3 size;
+        attribute vec3 position;
 
-      varying vec3 fNormal;
+        varying vec3 fNormal;
 
-      void claySetup() {
-        fNormal = position.xyz;
-      }
+        void claySetup() {
+          fNormal = position.xyz;
+        }
 
-      vec4 clayPosition() {
-        return vec4(origin + step(vec3(0), position) * size, 1);
-      }
-    '''
+        vec4 clayPosition() {
+          return vec4(origin + step(vec3(0), position) * size, 1);
+        }
+      '''
 
-    clayFrag: '''
-      varying mediump vec3 fNormal;
+      frag: '''
+        varying mediump vec3 fNormal;
 
-      vec4 clayNormal() {
-        vec3 mags = floor(abs(fNormal) + 0.0001);
-        mags = mags / (mags.x + mags.y + mags.z); // "poor man's normalization" around cusps
-        return vec4(mags * sign(fNormal), 0);
-      }
+        vec4 clayNormal() {
+          vec3 mags = floor(abs(fNormal) + 0.0001);
+          mags = mags / (mags.x + mags.y + mags.z); // "poor man's normalization" around cusps
+          return vec4(mags * sign(fNormal), 0);
+        }
 
-      vec4 clayPigment() {
-        return vec4(0.85, 0.85, 0.85, 1);
-      }
-    '''
+        vec4 clayPigment() {
+          return vec4(0.85, 0.85, 0.85, 1);
+        }
+      '''
 
   uniforms:
     origin: regl.prop 'origin'

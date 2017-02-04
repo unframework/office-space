@@ -25,52 +25,53 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
       modelTop: (context, props) ->
         props.modelTop or props.model
 
-      clayVert: '''
-        uniform mediump mat4 model;
-        uniform mediump mat4 modelTop;
-        uniform mediump vec4 colorTop;
-        uniform mediump vec4 colorBottom;
-        attribute vec4 position;
-        attribute vec3 normal;
-        attribute vec2 uv;
+      clay:
+        vert: '''
+          uniform mediump mat4 model;
+          uniform mediump mat4 modelTop;
+          uniform mediump vec4 colorTop;
+          uniform mediump vec4 colorBottom;
+          attribute vec4 position;
+          attribute vec3 normal;
+          attribute vec2 uv;
 
-        varying vec4 fNormal;
-        varying vec4 fColor;
-        varying vec2 fUV;
+          varying vec4 fNormal;
+          varying vec4 fColor;
+          varying vec2 fUV;
 
-        vec4 interp(vec4 item) {
-          vec4 deformedTop = modelTop * item;
-          vec4 deformedBottom = model * item;
+          vec4 interp(vec4 item) {
+            vec4 deformedTop = modelTop * item;
+            vec4 deformedBottom = model * item;
 
-          return mix(deformedBottom, deformedTop, position.z / ''' + MESH_HEIGHT + ''');
-        }
+            return mix(deformedBottom, deformedTop, position.z / ''' + MESH_HEIGHT + ''');
+          }
 
-        void claySetup() {
-          fNormal = interp(vec4(normal, 0)); // normal in world space without translation
-          fColor = mix(colorBottom, colorTop, position.z);
-          fUV = uv;
-        }
+          void claySetup() {
+            fNormal = interp(vec4(normal, 0)); // normal in world space without translation
+            fColor = mix(colorBottom, colorTop, position.z);
+            fUV = uv;
+          }
 
-        vec4 clayPosition() {
-          return interp(position);
-        }
+          vec4 clayPosition() {
+            return interp(position);
+          }
 
-      '''
+        '''
 
-      clayFrag: '''
-        uniform sampler2D texture;
-        varying mediump vec4 fNormal;
-        varying mediump vec4 fColor;
-        varying mediump vec2 fUV;
+        frag: '''
+          uniform sampler2D texture;
+          varying mediump vec4 fNormal;
+          varying mediump vec4 fColor;
+          varying mediump vec2 fUV;
 
-        vec4 clayNormal() {
-          return fNormal;
-        }
+          vec4 clayNormal() {
+            return fNormal;
+          }
 
-        vec4 clayPigment() {
-          return texture2D(texture, fUV) * fColor;
-        }
-      '''
+          vec4 clayPigment() {
+            return texture2D(texture, fUV) * fColor;
+          }
+        '''
 
     attributes:
       position: regl.buffer (
