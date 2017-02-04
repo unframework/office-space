@@ -25,14 +25,14 @@ groundShape = regl
       vec4 clayPosition() {
         return vec4(position, 0, 1);
       }
-
-      vec4 clayNormal() {
-        return vec4(0, 0, 1, 0);
-      }
     '''
 
     clayFrag: '''
       varying mediump vec4 fColor;
+
+      vec4 clayNormal() {
+        return vec4(0, 0, 1, 0);
+      }
 
       vec4 clayPigment() {
         return fColor;

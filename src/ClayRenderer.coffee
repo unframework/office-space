@@ -72,7 +72,6 @@ module.exports = (regl) ->
         uniform mediump mat4 light;
 
         varying vec4 fShadowCoord;
-        varying vec4 fNormal;
 
         // invoke standard entry points
         void main() {
@@ -81,9 +80,6 @@ module.exports = (regl) ->
           vec4 worldPosition = clayPosition();
           gl_Position = camera * worldPosition;
           fShadowCoord = light * worldPosition;
-
-          vec4 worldNormal = clayNormal();
-          fNormal = worldNormal;
         }
       '''
 
@@ -97,7 +93,6 @@ module.exports = (regl) ->
         uniform mediump float lightProjectionDepth;
         uniform sampler2D shadowMap;
         varying mediump vec4 fShadowCoord;
-        varying mediump vec4 fNormal;
 
         float shadowSample(vec2 co, float z, float bias) {
           float a = texture2D(shadowMap, co).z;
@@ -111,7 +106,7 @@ module.exports = (regl) ->
           vec4 pigment = clayPigment();
 
           vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
-          float lightCosTheta = -lightProjectionDepth * (light * fNormal).z;
+          float lightCosTheta = -lightProjectionDepth * (light * clayNormal()).z;
           float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
 
           float bias = max(0.03 * (1.0 - lightCosTheta), 0.005);

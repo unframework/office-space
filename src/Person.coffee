@@ -29,10 +29,12 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
         attribute vec3 normal;
         attribute vec2 uv;
 
+        varying vec4 fNormal;
         varying vec4 fColor;
         varying vec2 fUV;
 
         void claySetup() {
+          fNormal = model * vec4(normal, 0); // normal in world space without translation
           fColor = mix(colorBottom, colorTop, position.z);
           fUV = uv;
         }
@@ -41,15 +43,17 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
           return model * position;
         }
 
-        vec4 clayNormal() {
-          return model * vec4(normal, 0); // normal in world space without translation
-        }
       '''
 
       clayFrag: '''
         uniform sampler2D texture;
+        varying mediump vec4 fNormal;
         varying mediump vec4 fColor;
         varying mediump vec2 fUV;
+
+        vec4 clayNormal() {
+          return fNormal;
+        }
 
         vec4 clayPigment() {
           return texture2D(texture, fUV) * fColor;
