@@ -56,6 +56,7 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
             return interp(position);
           }
 
+          #pragma glslify: export(claySetup)
         '''
 
         frag: '''
@@ -64,6 +65,10 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
           varying mediump vec4 fColor;
           varying mediump vec2 fUV;
 
+          void claySetup() {
+            // nothing to prepare
+          }
+
           vec4 clayNormal() {
             return fNormal;
           }
@@ -71,6 +76,8 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
           vec4 clayPigment() {
             return texture2D(texture, fUV) * fColor;
           }
+
+          #pragma glslify: export(claySetup)
         '''
 
     attributes:

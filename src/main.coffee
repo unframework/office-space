@@ -25,10 +25,16 @@ groundShape = regl
         vec4 clayPosition() {
           return vec4(position, 0, 1);
         }
+
+        #pragma glslify: export(claySetup)
       '''
 
       frag: '''
         varying mediump vec4 fColor;
+
+        void claySetup() {
+          // nothing to prepare
+        }
 
         vec4 clayNormal() {
           return vec4(0, 0, 1, 0);
@@ -37,6 +43,8 @@ groundShape = regl
         vec4 clayPigment() {
           return fColor;
         }
+
+        #pragma glslify: export(claySetup)
       '''
 
   attributes:
@@ -74,10 +82,16 @@ orthoBoxShape = regl
         vec4 clayPosition() {
           return vec4(origin + step(vec3(0), position) * size, 1);
         }
+
+        #pragma glslify: export(claySetup)
       '''
 
       frag: '''
         varying mediump vec3 fNormal;
+
+        void claySetup() {
+          // nothing to prepare
+        }
 
         vec4 clayNormal() {
           vec3 mags = floor(abs(fNormal) + 0.0001);
@@ -88,6 +102,8 @@ orthoBoxShape = regl
         vec4 clayPigment() {
           return vec4(0.85, 0.85, 0.85, 1);
         }
+
+        #pragma glslify: export(claySetup)
       '''
 
   uniforms:

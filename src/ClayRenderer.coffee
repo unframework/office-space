@@ -1,5 +1,6 @@
 mat4 = require('gl-matrix').mat4
 vec4 = require('gl-matrix').vec4
+glslifyBundle = require('glslify-bundle')
 
 # references:
 # - http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/ (google search "opengl shadows")
@@ -14,11 +15,15 @@ cachingGenerator = (cacheKey, cb) ->
   (definition) ->
     definition[cacheKey] or (definition[cacheKey] = cb definition)
 
-generateDepthVertShader = cachingGenerator CACHE_DEPTH_VERT_KEY, (definition) ->
-  '''
-    // shape-specific code
+importUpstream = (upstream, src) ->
+  glslifyBundle [
+    { id: 0, deps: { '__upstream': 1 }, file: 'entry.glsl', source: src, entry: true }
+    { id: 1, deps: {}, file: 'upstream.glsl', source: upstream, entry: false }
+  ]
 
-    ''' + definition.vert + '''
+generateDepthVertShader = cachingGenerator CACHE_DEPTH_VERT_KEY, (definition) ->
+  importUpstream definition.vert, '''
+    #pragma glslify: claySetup = require('__upstream', clayPosition=clayPosition)
 
     uniform mat4 light;
 
@@ -40,10 +45,8 @@ generateDepthVertShader = cachingGenerator CACHE_DEPTH_VERT_KEY, (definition) ->
   '''
 
 generateViewVertShader = cachingGenerator CACHE_VIEW_VERT_KEY, (definition) ->
-  '''
-    // shape-specific code
-
-    ''' + definition.vert + '''
+  importUpstream definition.vert, '''
+    #pragma glslify: claySetup = require('__upstream', clayPosition=clayPosition)
 
     // standard material code
     uniform mediump mat4 camera;
@@ -62,10 +65,8 @@ generateViewVertShader = cachingGenerator CACHE_VIEW_VERT_KEY, (definition) ->
   '''
 
 generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
-  '''
-    // shape-specific code
-
-    ''' + definition.frag + '''
+  importUpstream definition.frag, '''
+    #pragma glslify: claySetup = require('__upstream', clayNormal=clayNormal, clayPigment=clayPigment)
 
     // standard material code
     uniform mediump mat4 light;
@@ -82,6 +83,8 @@ generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
 
     // invoke standard entry points
     void main() {
+      claySetup();
+
       vec4 pigment = clayPigment();
 
       vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
