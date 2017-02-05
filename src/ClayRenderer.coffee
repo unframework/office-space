@@ -29,13 +29,6 @@ generateDepthVertShader = cachingGenerator CACHE_DEPTH_VERT_KEY, (definition) ->
 
     varying vec4 fPosition;
 
-    void applyPosition(vec4 worldPosition) {
-    }
-
-    void applyNormal(vec4 worldNormal) {
-      // not in use
-    }
-
     // invoke standard entry points
     void main() {
       vec4 worldPosition = clayPosition();
@@ -137,7 +130,6 @@ module.exports = (regl) ->
 
   renderView = regl
     context:
-      # @todo cache the concatenation output itself
       vert: (context) ->
         generateViewVertShader context.clay
 
