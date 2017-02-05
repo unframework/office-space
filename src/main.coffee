@@ -186,13 +186,13 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     color: [ 1, 1, 1, 1 ]
     depth: 1
 
-  renderClayScene camera, lightProjection, lightTransform, (renderer) ->
+  renderClayScene camera, lightProjection, lightTransform, (render, renderNonShadowing) ->
     groundShape
       colorA: [ 0.8, 0.8, 0.8, 1 ]
       colorB: [ 0.98, 0.98, 0.98, 1 ]
-    , renderer false
+    , renderNonShadowing
 
-    orthoBoxShape orthoBoxes, renderer true
+    orthoBoxShape orthoBoxes, render
 
     if personShape then personShape [
       {
@@ -207,4 +207,4 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
         colorTop: [ 1, 0.8, 1, 1 ]
         colorBottom: [ 0.8, 1, 1, 1 ]
       }
-    ], renderer true
+    ], render

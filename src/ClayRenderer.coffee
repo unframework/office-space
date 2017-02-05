@@ -163,7 +163,7 @@ module.exports = (regl) ->
         color: [ 1, 1, 1, 1 ]
         depth: 1
 
-      cb (isShadowing) -> (-> if isShadowing then renderDepth())
+      cb (-> renderDepth()), (->)
 
     withViewScope
       camera: camera
@@ -171,4 +171,4 @@ module.exports = (regl) ->
       lightProjectionDepth: lightProjectionDepth
       shadowMap: shadowFBO
     , ->
-      cb (isShadowing) -> (-> renderView())
+      cb (-> renderView()), (-> renderView())
