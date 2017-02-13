@@ -27,10 +27,12 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
 
       clay:
         vert: '''
-          uniform mediump mat4 model;
-          uniform mediump mat4 modelTop;
-          uniform mediump vec4 colorTop;
-          uniform mediump vec4 colorBottom;
+          precision mediump float;
+
+          uniform mat4 model;
+          uniform mat4 modelTop;
+          uniform vec4 colorTop;
+          uniform vec4 colorBottom;
           attribute vec4 position;
           attribute vec3 normal;
           attribute vec2 uv;
@@ -60,10 +62,12 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
         '''
 
         frag: '''
+          precision mediump float;
+
           uniform sampler2D texture;
-          varying mediump vec4 fNormal;
-          varying mediump vec4 fColor;
-          varying mediump vec2 fUV;
+          varying vec4 fNormal;
+          varying vec4 fColor;
+          varying vec2 fUV;
 
           void claySetup() {
             // nothing to prepare

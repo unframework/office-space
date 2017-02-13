@@ -12,6 +12,8 @@ groundShape = regl
   context:
     clay:
       vert: '''
+        precision mediump float;
+
         uniform vec4 colorA;
         uniform vec4 colorB;
         attribute vec2 position;
@@ -30,6 +32,8 @@ groundShape = regl
       '''
 
       frag: '''
+        precision mediump float;
+
         varying mediump vec4 fColor;
 
         void claySetup() {
@@ -69,6 +73,8 @@ orthoBoxShape = regl
   context:
     clay:
       vert: '''
+        precision mediump float;
+
         uniform mediump vec3 origin;
         uniform mediump vec3 size;
         attribute vec3 position;
@@ -87,6 +93,8 @@ orthoBoxShape = regl
       '''
 
       frag: '''
+        precision mediump float;
+
         varying mediump vec3 fNormal;
 
         void claySetup() {

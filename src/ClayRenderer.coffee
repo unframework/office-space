@@ -25,6 +25,8 @@ generateDepthVertShader = cachingGenerator CACHE_DEPTH_VERT_KEY, (definition) ->
   importUpstream definition.vert, '''
     #pragma glslify: claySetup = require('__upstream', clayPosition=clayPosition)
 
+    precision mediump float;
+
     uniform mat4 light;
 
     varying vec4 fPosition;
@@ -41,9 +43,11 @@ generateViewVertShader = cachingGenerator CACHE_VIEW_VERT_KEY, (definition) ->
   importUpstream definition.vert, '''
     #pragma glslify: claySetup = require('__upstream', clayPosition=clayPosition)
 
+    precision mediump float;
+
     // standard material code
-    uniform mediump mat4 camera;
-    uniform mediump mat4 light;
+    uniform mat4 camera;
+    uniform mat4 light;
 
     varying vec4 fShadowCoord;
 
@@ -61,11 +65,13 @@ generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
   importUpstream definition.frag, '''
     #pragma glslify: claySetup = require('__upstream', clayNormal=clayNormal, clayPigment=clayPigment)
 
+    precision mediump float;
+
     // standard material code
-    uniform mediump mat4 light;
-    uniform mediump float lightProjectionDepth;
+    uniform mat4 light;
+    uniform float lightProjectionDepth;
     uniform sampler2D shadowMap;
-    varying mediump vec4 fShadowCoord;
+    varying vec4 fShadowCoord;
 
     float shadowSample(vec2 co, float z, float bias) {
       float a = texture2D(shadowMap, co).z;
@@ -112,7 +118,9 @@ module.exports = (regl) ->
     vert: regl.context 'vert'
 
     frag: '''
-      varying mediump vec4 fPosition;
+      precision mediump float;
+
+      varying vec4 fPosition;
 
       // ignore shape-specific pigmentation
       void main () {
