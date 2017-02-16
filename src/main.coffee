@@ -1,17 +1,10 @@
-b2Vec2 = require('box2dweb').Common.Math.b2Vec2
-b2World = require('box2dweb').Dynamics.b2World
-b2FixtureDef = require('box2dweb').Dynamics.b2FixtureDef
-b2CircleShape = require('box2dweb').Collision.Shapes.b2CircleShape
-b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
-b2Body = require('box2dweb').Dynamics.b2Body
-
 vec3 = require('gl-matrix').vec3
 mat4 = require('gl-matrix').mat4
 regl = require('regl')
   extensions: 'oes_texture_float'
 
+World = require('./World.coffee')
 ClayRenderer = require('./ClayRenderer.coffee')
-WalkCycleTracker = require('./WalkCycleTracker.coffee')
 
 personShape = null
 require('./PersonShape.coffee')(regl).then (v) -> personShape = v
@@ -29,51 +22,6 @@ lightProjection = mat4.create()
 lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
-
-class Person
-  constructor: (world, x, y, @_debug) ->
-    fixDef = new b2FixtureDef()
-    fixDef.density = 200.0
-    fixDef.friction = 2.0
-    fixDef.restitution = 0.1
-    fixDef.shape = new b2CircleShape(0.3)
-
-    bodyDef = new b2BodyDef()
-    bodyDef.type = b2Body.b2_dynamicBody
-    bodyDef.position.x = x
-    bodyDef.position.y = y
-    bodyDef.angle = (Math.random() * 2 - 1) * Math.PI
-
-    @_mainBody = world.physicsWorld.CreateBody(bodyDef)
-    @_mainBody.CreateFixture(fixDef)
-    @_mainBody.SetLinearDamping(1.2)
-    @_mainBody.SetAngularDamping(1.8)
-
-    @_walkTracker = new WalkCycleTracker(world.physicsStepDuration, @_mainBody)
-
-    if @_debug
-      # @_mainBody.ApplyImpulse new b2Vec2(0, 200), new b2Vec2(x, y)
-      @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 200, Math.sin(bodyDef.angle) * 200), new b2Vec2(x, y)
-
-  onPhysicsStep: ->
-    @_walkTracker.onPhysicsStep()
-
-class World
-  constructor: ->
-    @physicsWorld = new b2World(new b2Vec2(0, 0), true)
-    @physicsStepDuration = 0.04
-
-    @_personList = [
-      new Person(this, 0, -0.2, true)
-      new Person(this, -0.5, 0.5)
-      new Person(this, 0.4, 0.1)
-    ]
-
-    setInterval =>
-      @physicsWorld.Step(@physicsStepDuration, 10, 10)
-
-      person.onPhysicsStep() for person in @_personList
-    , Math.ceil(@physicsStepDuration * 1000)
 
 world = new World()
 
