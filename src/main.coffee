@@ -48,7 +48,11 @@ class Person
     @_mainBody.CreateFixture(fixDef)
     @_mainBody.SetAngularDamping(1.8)
 
-personRendererPropsList = []
+personList = [
+  new Person(0, 0)
+  new Person(-0.5, 0.5)
+  new Person(0.4, 0.1)
+]
 
 class PersonRendererProps
   constructor: (person) ->
@@ -66,9 +70,7 @@ class PersonRendererProps
     mat4.identity @model # @todo reuse one identity source?
     mat4.translate @model, @model, @_pos
 
-personRendererPropsList.push new PersonRendererProps(new Person(0, 0))
-personRendererPropsList.push new PersonRendererProps(new Person(-0.5, 0.5))
-personRendererPropsList.push new PersonRendererProps(new Person(0.4, 0.1))
+personRendererPropsList = (new PersonRendererProps(person) for person in personList)
 
 orthoBoxes = [].concat ([].concat (
   for r in [ -1 .. 1 ]
