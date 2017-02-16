@@ -14,7 +14,7 @@ ClayRenderer = require('./ClayRenderer.coffee')
 WalkCycleTracker = require('./WalkCycleTracker.coffee')
 
 personShape = null
-require('./Person.coffee')(regl).then (v) -> personShape = v
+require('./PersonShape.coffee')(regl).then (v) -> personShape = v
 
 groundShape = require('./GroundShape.coffee')(regl)
 orthoBoxShape = require('./OrthoBoxShape.coffee')(regl)

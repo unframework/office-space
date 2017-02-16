@@ -2,8 +2,8 @@ fs = require('fs')
 Readable = require('stream').Readable
 parseOBJ = require('parse-obj')
 
-TEXTURE_DATA = fs.readFileSync(__dirname + '/Person.png', 'binary')
-MESH_DATA = fs.readFileSync __dirname + '/Person.objdata'
+TEXTURE_DATA = fs.readFileSync(__dirname + '/PersonShape.png', 'binary')
+MESH_DATA = fs.readFileSync __dirname + '/PersonShape.objdata'
 MESH_SCALE = 1
 MESH_HEIGHT = 1.5
 
