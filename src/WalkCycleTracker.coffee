@@ -7,7 +7,7 @@ class WalkCycleTracker
     @_physicsBodyPos = physicsBody.GetPosition()
 
     @_walkPos = vec2.fromValues(@_physicsBodyPos.x, @_physicsBodyPos.y)
-    @_walkPhase = 0
+    @_walkCycleTime = 0
     @_walkFootLPos = vec2.create() # last grounded nominal foot position
     @_walkFootRPos = vec2.create()
     @_walkFootLNextPos = vec2.create() # expected next nominal foot position
@@ -29,25 +29,26 @@ class WalkCycleTracker
 
     FOOT_CYCLE_TIME = 0.5
 
-    @_walkPhase += deltaTime / FOOT_CYCLE_TIME # @todo this accumulates error; significant? should be part of physics, right?
-    @_walkPhase -= Math.floor @_walkPhase # fmod 1
+    @_walkCycleTime += deltaTime
 
-    leftFootIsLifted = @_walkPhase < 0.5
-    footPhaseAngle = @_walkPhase * 2 * Math.PI
-    footLift = Math.sin footPhaseAngle
-    footAlong = 0.5 * (1 - (if leftFootIsLifted then 1 else -1) * Math.cos(footPhaseAngle))
+    phase = @_walkCycleTime / FOOT_CYCLE_TIME
+    phaseFmod = Math.floor phase
+    phase -= phaseFmod # fmod 1
+
+    @_walkCycleTime -= FOOT_CYCLE_TIME * phaseFmod # should not accumulate errors easily
+
+    leftFootIsLifted = phase < 0.5
+    leftFootSign = (if leftFootIsLifted then 1 else -1)
+    footAlong = 0.5 * (1 - leftFootSign * Math.cos(phase * 2 * Math.PI))
     footAnim = (1 - footAlong) * (1 - footAlong) # non-linear foot snap
 
     [ movingFootRefPos, movingFootNextPos, movingFootOffset ] = if leftFootIsLifted then [ @_walkFootLPos, @_walkFootLNextPos, @footLMeshOffset ] else [ @_walkFootRPos, @_walkFootRNextPos, @footRMeshOffset ]
     [ stuckFootPos, stuckFootNextPos, stuckFootOffset ] = if leftFootIsLifted then [ @_walkFootRPos, @_walkFootRNextPos, @footRMeshOffset ] else [ @_walkFootLPos, @_walkFootLNextPos, @footLMeshOffset ]
 
-    movingFootTimeInAir = FOOT_CYCLE_TIME * (if leftFootIsLifted then @_walkPhase else @_walkPhase - 0.5)
+    movingFootTimeInAir = FOOT_CYCLE_TIME * (if leftFootIsLifted then phase else phase - 0.5)
 
     vec2.set @_footLocalOffset, -Math.sin(@_physicsBody.GetAngle()), Math.cos(@_physicsBody.GetAngle())
-    if leftFootIsLifted
-      vec2.scale @_footLocalOffset, @_footLocalOffset, 0.4
-    else
-      vec2.scale @_footLocalOffset, @_footLocalOffset, -0.4
+    vec2.scale @_footLocalOffset, @_footLocalOffset, 0.4 * leftFootSign
 
     vec2.add @_movingFootCurrentPos, @_walkPos, @_footLocalOffset
 
