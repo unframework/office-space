@@ -5,13 +5,13 @@ b2CircleShape = require('box2dweb').Collision.Shapes.b2CircleShape
 b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
 b2Body = require('box2dweb').Dynamics.b2Body
 
-vec2 = require('gl-matrix').vec2
 vec3 = require('gl-matrix').vec3
 mat4 = require('gl-matrix').mat4
 regl = require('regl')
   extensions: 'oes_texture_float'
 
 ClayRenderer = require('./ClayRenderer.coffee')
+WalkCycleTracker = require('./WalkCycleTracker.coffee')
 
 personShape = null
 require('./Person.coffee')(regl).then (v) -> personShape = v
@@ -30,10 +30,8 @@ lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
-world = new b2World(new b2Vec2(0, 0), true)
-
 class Person
-  constructor: (x, y, @_debug) ->
+  constructor: (world, x, y, @_debug) ->
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
     fixDef.friction = 2.0
@@ -46,18 +44,38 @@ class Person
     bodyDef.position.y = y
     bodyDef.angle = (Math.random() * 2 - 1) * Math.PI
 
-    @_mainBody = world.CreateBody(bodyDef)
+    @_mainBody = world.physicsWorld.CreateBody(bodyDef)
     @_mainBody.CreateFixture(fixDef)
+    @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
 
-    if @_debug
-      @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 20, Math.sin(bodyDef.angle) * 20), new b2Vec2(x, y)
+    @_walkTracker = new WalkCycleTracker(world.physicsStepDuration, @_mainBody)
 
-personList = [
-  new Person(0, 0, true)
-  new Person(-0.5, 0.5)
-  new Person(0.4, 0.1)
-]
+    if @_debug
+      # @_mainBody.ApplyImpulse new b2Vec2(0, 200), new b2Vec2(x, y)
+      @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 200, Math.sin(bodyDef.angle) * 200), new b2Vec2(x, y)
+
+  onPhysicsStep: ->
+    @_walkTracker.onPhysicsStep()
+
+class World
+  constructor: ->
+    @physicsWorld = new b2World(new b2Vec2(0, 0), true)
+    @physicsStepDuration = 0.04
+
+    @_personList = [
+      new Person(this, 0, -0.2, true)
+      new Person(this, -0.5, 0.5)
+      new Person(this, 0.4, 0.1)
+    ]
+
+    setInterval =>
+      @physicsWorld.Step(@physicsStepDuration, 10, 10)
+
+      person.onPhysicsStep() for person in @_personList
+    , Math.ceil(@physicsStepDuration * 1000)
+
+world = new World()
 
 class PersonRendererProps
   constructor: (person) ->
@@ -65,59 +83,32 @@ class PersonRendererProps
 
     @_srcMainBody = person._mainBody
     @_srcMainBodyPos = @_srcMainBody.GetPosition()
-
-    @_walkPos = vec2.create()
-    @_walkDelta = vec2.create()
-    @_walkDir = vec2.create()
-    @_walkDirCross = vec3.create()
-    @_walkAlongPhase = 0
-    @_walkAcrossPhase = 0
+    @_srcWalkTracker = person._walkTracker
 
     @_pos = vec3.create()
-    @_scale = vec3.create()
     @model = mat4.create()
-    @modelTop = mat4.create()
+    @modelFootL = mat4.create()
+    @modelFootR = mat4.create()
     @colorTop = [ 1, 1, 0.8, 1 ]
     @colorBottom = [ 1, 0.8, 1, 1 ]
 
-  _updateWalk: ->
-    vec2.copy @_walkDelta, @_walkPos
-    vec2.set @_walkPos, @_srcMainBodyPos.x, @_srcMainBodyPos.y
-    vec2.sub @_walkDelta, @_walkPos, @_walkDelta
-
-    vec2.set @_walkDir, Math.cos(@_srcMainBody.GetAngle()), Math.sin(@_srcMainBody.GetAngle())
-    along = vec2.dot @_walkDelta, @_walkDir
-    vec2.cross @_walkDirCross, @_walkDelta, @_walkDir
-
-    @_walkAlongPhase += along
-
-    if @_walkAlongPhase > 1
-      @_walkAlongPhase -= Math.floor @_walkAlongPhase
-    else if @_walkAlongPhase < 0
-      @_walkAlongPhase += Math.ceil -@_walkAlongPhase
-
-    @_walkAcrossPhase += @_walkDirCross[2]
-
-    if @_walkAcrossPhase > 1
-      @_walkAcrossPhase -= Math.floor @_walkAcrossPhase
-    else if @_walkAcrossPhase < 0
-      @_walkAcrossPhase += Math.ceil -@_walkAcrossPhase
-
   update: ->
-    @_updateWalk()
-
     vec3.set @_pos, @_srcMainBodyPos.x, @_srcMainBodyPos.y, 0
 
-    mat4.identity @modelTop # @todo reuse one identity source?
-    mat4.translate @modelTop, @modelTop, @_pos
-    mat4.rotateZ @modelTop, @modelTop, @_srcMainBody.GetAngle()
+    mat4.identity @model # @todo reuse one identity source?
+    mat4.translate @model, @model, @_pos
+    mat4.rotateZ @model, @model, @_srcMainBody.GetAngle()
 
-    vec3.set @_scale, 1, 1 + 0.05 * Math.sin(8 * @_walkAcrossPhase * 2 * Math.PI), 1
+    # feet are positioned independently in world space
+    mat4.identity @modelFootL # @todo reuse one identity source?
+    mat4.translate @modelFootL, @modelFootL, @_srcWalkTracker.footLMeshOffset
+    mat4.rotateZ @modelFootL, @modelFootL, @_srcMainBody.GetAngle()
 
-    mat4.rotateZ @model, @modelTop, 0.1 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
-    mat4.scale @model, @model, @_scale
+    mat4.identity @modelFootR # @todo reuse one identity source?
+    mat4.translate @modelFootR, @modelFootR, @_srcWalkTracker.footRMeshOffset
+    mat4.rotateZ @modelFootR, @modelFootR, @_srcMainBody.GetAngle()
 
-personRendererPropsList = (new PersonRendererProps(person) for person in personList)
+personRendererPropsList = (new PersonRendererProps(person) for person in world._personList)
 
 orthoBoxes = [].concat ([].concat (
   for r in [ -1 .. 1 ]
@@ -133,10 +124,6 @@ orthoBoxes = [].concat ([].concat (
           size: vec3.fromValues(dx + CUBEWALL_THICKNESS, dy + CUBEWALL_THICKNESS, CUBEWALL_HEIGHT)
         }
 )...)...
-
-setInterval ->
-  world.Step(0.04, 10, 10)
-, 40
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
   vec3.set cameraPosition, 10, 10, -15 + 0.2 * Math.sin(time / 8)
@@ -164,6 +151,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       colorB: [ 0.98, 0.98, 0.98, 1 ]
     , renderNonShadowing
 
-    orthoBoxShape orthoBoxes, render
+    # @todo restore
+    # orthoBoxShape orthoBoxes, render
 
     if personShape then personShape personRendererPropsList, render

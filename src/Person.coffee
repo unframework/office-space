@@ -24,12 +24,24 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
     context:
       modelTop: (context, props) ->
         props.modelTop or props.model
+      modelFootL: (context, props) ->
+        props.modelFootL or props.model
+      modelFootR: (context, props) ->
+        props.modelFootR or props.model
 
       clay:
         vert: '''
           precision mediump float;
 
+          const float meshHeight = ''' + MESH_HEIGHT + ''';
+          const float topBlendStart = 0.5;
+          const float topBlendEnd = 0.6;
+          const float feetBlendStart = 0.3;
+          const float feetBlendEnd = 0.05;
+
           uniform mat4 model;
+          uniform mat4 modelFootL;
+          uniform mat4 modelFootR;
           uniform mat4 modelTop;
           uniform vec4 colorTop;
           uniform vec4 colorBottom;
@@ -41,16 +53,29 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
           varying vec4 fColor;
           varying vec2 fUV;
 
-          vec4 interp(vec4 item) {
-            vec4 deformedTop = modelTop * item;
-            vec4 deformedBottom = model * item;
+          float zPortion() {
+            return position.z / meshHeight;
+          }
 
-            return mix(deformedBottom, deformedTop, position.z / ''' + MESH_HEIGHT + ''');
+          float topAmount() {
+            return clamp((zPortion() - topBlendStart) / (topBlendEnd - topBlendStart), 0.0, 1.0);
+          }
+
+          float feetAmount() {
+            return clamp((zPortion() - feetBlendStart) / (feetBlendEnd - feetBlendStart), 0.0, 1.0);
+          }
+
+          vec4 interp(vec4 item) {
+            vec4 deformedMain = model * item;
+            vec4 deformedTop = modelTop * item;
+            vec4 deformedFeet = position.y > 0.0 ? modelFootL * item : modelFootR * item;
+
+            return mix(mix(deformedMain, deformedFeet, feetAmount()), deformedTop, topAmount());
           }
 
           void claySetup() {
             fNormal = interp(vec4(normal, 0)); // normal in world space without translation
-            fColor = mix(colorBottom, colorTop, position.z);
+            fColor = mix(colorBottom, colorTop, position.z / meshHeight);
             fUV = uv;
           }
 
@@ -151,6 +176,8 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
     uniforms:
       model: regl.prop 'model'
       modelTop: regl.context 'modelTop'
+      modelFootL: regl.context 'modelFootL'
+      modelFootR: regl.context 'modelFootR'
 
       colorTop: regl.prop 'colorTop'
       colorBottom: regl.prop 'colorBottom'
