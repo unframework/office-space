@@ -37,12 +37,13 @@ class Person
     fixDef.density = 200.0
     fixDef.friction = 2.0
     fixDef.restitution = 0.1
-    fixDef.shape = new b2CircleShape(0.5)
+    fixDef.shape = new b2CircleShape(0.3)
 
     bodyDef = new b2BodyDef()
     bodyDef.type = b2Body.b2_dynamicBody
     bodyDef.position.x = x
     bodyDef.position.y = y
+    bodyDef.angle = (Math.random() * 2 - 1) * Math.PI
 
     @_mainBody = world.CreateBody(bodyDef)
     @_mainBody.CreateFixture(fixDef)
@@ -58,7 +59,8 @@ class PersonRendererProps
   constructor: (person) ->
     console.log person
     @_pos = vec3.create()
-    @_srcMainBodyPos = person._mainBody.GetPosition()
+    @_srcMainBody = person._mainBody
+    @_srcMainBodyPos = @_srcMainBody.GetPosition()
 
     @model = mat4.create()
     @colorTop = [ 1, 1, 0.8, 1 ]
@@ -69,6 +71,7 @@ class PersonRendererProps
 
     mat4.identity @model # @todo reuse one identity source?
     mat4.translate @model, @model, @_pos
+    mat4.rotateZ @model, @model, @_srcMainBody.GetAngle()
 
 personRendererPropsList = (new PersonRendererProps(person) for person in personList)
 
