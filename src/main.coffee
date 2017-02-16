@@ -30,11 +30,8 @@ lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
-world = new b2World(new b2Vec2(0, 0), true)
-worldTimeDelta = 0.04
-
 class Person
-  constructor: (x, y, @_debug) ->
+  constructor: (world, x, y, @_debug) ->
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
     fixDef.friction = 2.0
@@ -47,25 +44,38 @@ class Person
     bodyDef.position.y = y
     bodyDef.angle = (Math.random() * 2 - 1) * Math.PI
 
-    @_mainBody = world.CreateBody(bodyDef)
+    @_mainBody = world.physicsWorld.CreateBody(bodyDef)
     @_mainBody.CreateFixture(fixDef)
     @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
 
-    @_walkTracker = new WalkCycleTracker(@_mainBody)
+    @_walkTracker = new WalkCycleTracker(world.physicsStepDuration, @_mainBody)
 
     if @_debug
       # @_mainBody.ApplyImpulse new b2Vec2(0, 200), new b2Vec2(x, y)
       @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 200, Math.sin(bodyDef.angle) * 200), new b2Vec2(x, y)
 
-  update: ->
-    @_walkTracker.update worldTimeDelta
+  onPhysicsStep: ->
+    @_walkTracker.onPhysicsStep()
 
-personList = [
-  new Person(0, -0.2, true)
-  new Person(-0.5, 0.5)
-  new Person(0.4, 0.1)
-]
+class World
+  constructor: ->
+    @physicsWorld = new b2World(new b2Vec2(0, 0), true)
+    @physicsStepDuration = 0.04
+
+    @_personList = [
+      new Person(this, 0, -0.2, true)
+      new Person(this, -0.5, 0.5)
+      new Person(this, 0.4, 0.1)
+    ]
+
+    setInterval =>
+      @physicsWorld.Step(@physicsStepDuration, 10, 10)
+
+      person.onPhysicsStep() for person in @_personList
+    , Math.ceil(@physicsStepDuration * 1000)
+
+world = new World()
 
 class PersonRendererProps
   constructor: (person) ->
@@ -98,7 +108,7 @@ class PersonRendererProps
     mat4.translate @modelFootR, @modelFootR, @_srcWalkTracker.footRMeshOffset
     mat4.rotateZ @modelFootR, @modelFootR, @_srcMainBody.GetAngle()
 
-personRendererPropsList = (new PersonRendererProps(person) for person in personList)
+personRendererPropsList = (new PersonRendererProps(person) for person in world._personList)
 
 orthoBoxes = [].concat ([].concat (
   for r in [ -1 .. 1 ]
@@ -114,12 +124,6 @@ orthoBoxes = [].concat ([].concat (
           size: vec3.fromValues(dx + CUBEWALL_THICKNESS, dy + CUBEWALL_THICKNESS, CUBEWALL_HEIGHT)
         }
 )...)...
-
-setInterval ->
-  world.Step(worldTimeDelta, 10, 10)
-
-  person.update() for person in personList
-, Math.ceil(worldTimeDelta * 1000)
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
   vec3.set cameraPosition, 10, 10, -15 + 0.2 * Math.sin(time / 8)

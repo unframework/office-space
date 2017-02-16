@@ -2,9 +2,8 @@ vec2 = require('gl-matrix').vec2
 vec3 = require('gl-matrix').vec3
 
 class WalkCycleTracker
-  constructor: (physicsBody) ->
-    @_physicsBody = physicsBody
-    @_physicsBodyPos = physicsBody.GetPosition()
+  constructor: (@_physicsStepDuration, @_physicsBody) ->
+    @_physicsBodyPos = @_physicsBody.GetPosition()
 
     @_walkPos = vec2.fromValues(@_physicsBodyPos.x, @_physicsBodyPos.y)
     @_walkCycleTime = 0
@@ -25,12 +24,12 @@ class WalkCycleTracker
     vec2.copy @_walkFootRNextPos, @_walkFootRPos
 
   # the time step is expected to be fixed, for smoother animation
-  update: (deltaTime) ->
+  onPhysicsStep: ->
     vec2.set @_walkPos, @_physicsBodyPos.x, @_physicsBodyPos.y
 
     FOOT_CYCLE_TIME = 0.5
 
-    @_walkCycleTime += deltaTime
+    @_walkCycleTime += @_physicsStepDuration
 
     phase = @_walkCycleTime / FOOT_CYCLE_TIME
     phaseFmod = Math.floor phase
