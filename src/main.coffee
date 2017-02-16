@@ -5,6 +5,7 @@ b2CircleShape = require('box2dweb').Collision.Shapes.b2CircleShape
 b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
 b2Body = require('box2dweb').Dynamics.b2Body
 
+vec2 = require('gl-matrix').vec2
 vec3 = require('gl-matrix').vec3
 mat4 = require('gl-matrix').mat4
 regl = require('regl')
@@ -32,7 +33,7 @@ renderClayScene = new ClayRenderer regl
 world = new b2World(new b2Vec2(0, 0), true)
 
 class Person
-  constructor: (x, y) ->
+  constructor: (x, y, @_debug) ->
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
     fixDef.friction = 2.0
@@ -49,29 +50,72 @@ class Person
     @_mainBody.CreateFixture(fixDef)
     @_mainBody.SetAngularDamping(1.8)
 
+    if @_debug
+      @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 20, Math.sin(bodyDef.angle) * 20), new b2Vec2(x, y)
+
 personList = [
-  new Person(0, 0)
+  new Person(0, 0, true)
   new Person(-0.5, 0.5)
   new Person(0.4, 0.1)
 ]
 
 class PersonRendererProps
   constructor: (person) ->
-    console.log person
-    @_pos = vec3.create()
+    @_debug = person._debug
+
     @_srcMainBody = person._mainBody
     @_srcMainBodyPos = @_srcMainBody.GetPosition()
 
+    @_walkPos = vec2.create()
+    @_walkDelta = vec2.create()
+    @_walkDir = vec2.create()
+    @_walkDirCross = vec3.create()
+    @_walkAlongPhase = 0
+    @_walkAcrossPhase = 0
+
+    @_pos = vec3.create()
+    @_scale = vec3.create()
     @model = mat4.create()
+    @modelTop = mat4.create()
     @colorTop = [ 1, 1, 0.8, 1 ]
     @colorBottom = [ 1, 0.8, 1, 1 ]
 
+  _updateWalk: ->
+    vec2.copy @_walkDelta, @_walkPos
+    vec2.set @_walkPos, @_srcMainBodyPos.x, @_srcMainBodyPos.y
+    vec2.sub @_walkDelta, @_walkPos, @_walkDelta
+
+    vec2.set @_walkDir, Math.cos(@_srcMainBody.GetAngle()), Math.sin(@_srcMainBody.GetAngle())
+    along = vec2.dot @_walkDelta, @_walkDir
+    vec2.cross @_walkDirCross, @_walkDelta, @_walkDir
+
+    @_walkAlongPhase += along
+
+    if @_walkAlongPhase > 1
+      @_walkAlongPhase -= Math.floor @_walkAlongPhase
+    else if @_walkAlongPhase < 0
+      @_walkAlongPhase += Math.ceil -@_walkAlongPhase
+
+    @_walkAcrossPhase += @_walkDirCross[2]
+
+    if @_walkAcrossPhase > 1
+      @_walkAcrossPhase -= Math.floor @_walkAcrossPhase
+    else if @_walkAcrossPhase < 0
+      @_walkAcrossPhase += Math.ceil -@_walkAcrossPhase
+
   update: ->
+    @_updateWalk()
+
     vec3.set @_pos, @_srcMainBodyPos.x, @_srcMainBodyPos.y, 0
 
-    mat4.identity @model # @todo reuse one identity source?
-    mat4.translate @model, @model, @_pos
-    mat4.rotateZ @model, @model, @_srcMainBody.GetAngle()
+    mat4.identity @modelTop # @todo reuse one identity source?
+    mat4.translate @modelTop, @modelTop, @_pos
+    mat4.rotateZ @modelTop, @modelTop, @_srcMainBody.GetAngle()
+
+    vec3.set @_scale, 1, 1 + 0.05 * Math.sin(8 * @_walkAcrossPhase * 2 * Math.PI), 1
+
+    mat4.rotateZ @model, @modelTop, 0.1 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
+    mat4.scale @model, @model, @_scale
 
 personRendererPropsList = (new PersonRendererProps(person) for person in personList)
 
