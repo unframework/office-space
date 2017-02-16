@@ -24,6 +24,7 @@ class WalkCycleTracker
     vec2.copy @_walkFootLNextPos, @_walkFootLPos
     vec2.copy @_walkFootRNextPos, @_walkFootRPos
 
+  # the time step is expected to be fixed, for smoother animation
   update: (deltaTime) ->
     vec2.set @_walkPos, @_physicsBodyPos.x, @_physicsBodyPos.y
 

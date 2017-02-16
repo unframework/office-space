@@ -31,6 +31,7 @@ lightTransform = mat4.create()
 renderClayScene = new ClayRenderer regl
 
 world = new b2World(new b2Vec2(0, 0), true)
+worldTimeDelta = 0.04
 
 class Person
   constructor: (x, y, @_debug) ->
@@ -51,9 +52,14 @@ class Person
     @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
 
+    @_walkTracker = new WalkCycleTracker(@_mainBody)
+
     if @_debug
       # @_mainBody.ApplyImpulse new b2Vec2(0, 200), new b2Vec2(x, y)
       @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 200, Math.sin(bodyDef.angle) * 200), new b2Vec2(x, y)
+
+  update: ->
+    @_walkTracker.update worldTimeDelta
 
 personList = [
   new Person(0, -0.2, true)
@@ -67,8 +73,7 @@ class PersonRendererProps
 
     @_srcMainBody = person._mainBody
     @_srcMainBodyPos = @_srcMainBody.GetPosition()
-
-    @_walkTracker = new WalkCycleTracker(person._mainBody)
+    @_srcWalkTracker = person._walkTracker
 
     @_pos = vec3.create()
     @model = mat4.create()
@@ -77,9 +82,7 @@ class PersonRendererProps
     @colorTop = [ 1, 1, 0.8, 1 ]
     @colorBottom = [ 1, 0.8, 1, 1 ]
 
-  update: (deltaTime) ->
-    @_walkTracker.update deltaTime
-
+  update: ->
     vec3.set @_pos, @_srcMainBodyPos.x, @_srcMainBodyPos.y, 0
 
     mat4.identity @model # @todo reuse one identity source?
@@ -88,11 +91,11 @@ class PersonRendererProps
 
     # feet are positioned independently in world space
     mat4.identity @modelFootL # @todo reuse one identity source?
-    mat4.translate @modelFootL, @modelFootL, @_walkTracker.footLMeshOffset
+    mat4.translate @modelFootL, @modelFootL, @_srcWalkTracker.footLMeshOffset
     mat4.rotateZ @modelFootL, @modelFootL, @_srcMainBody.GetAngle()
 
     mat4.identity @modelFootR # @todo reuse one identity source?
-    mat4.translate @modelFootR, @modelFootR, @_walkTracker.footRMeshOffset
+    mat4.translate @modelFootR, @modelFootR, @_srcWalkTracker.footRMeshOffset
     mat4.rotateZ @modelFootR, @modelFootR, @_srcMainBody.GetAngle()
 
 personRendererPropsList = (new PersonRendererProps(person) for person in personList)
@@ -113,15 +116,12 @@ orthoBoxes = [].concat ([].concat (
 )...)...
 
 setInterval ->
-  world.Step(0.04, 10, 10)
-, 40
+  world.Step(worldTimeDelta, 10, 10)
 
-lastRenderTime = null
+  person.update() for person in personList
+, Math.ceil(worldTimeDelta * 1000)
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  deltaTime = if lastRenderTime is null then 0 else time - lastRenderTime
-  lastRenderTime = time
-
   vec3.set cameraPosition, 10, 10, -15 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
@@ -135,7 +135,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX lightTransform, lightTransform, -0.6
   mat4.rotateZ lightTransform, lightTransform, 3 * Math.PI / 4
 
-  props.update(deltaTime) for props in personRendererPropsList
+  props.update() for props in personRendererPropsList
 
   regl.clear
     color: [ 1, 1, 1, 1 ]
