@@ -48,13 +48,15 @@ class Person
 
     @_mainBody = world.CreateBody(bodyDef)
     @_mainBody.CreateFixture(fixDef)
+    @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
 
     if @_debug
-      @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 20, Math.sin(bodyDef.angle) * 20), new b2Vec2(x, y)
+      # @_mainBody.ApplyImpulse new b2Vec2(0, 200), new b2Vec2(x, y)
+      @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 200, Math.sin(bodyDef.angle) * 200), new b2Vec2(x, y)
 
 personList = [
-  new Person(0, 0, true)
+  new Person(0, -0.2, true)
   new Person(-0.5, 0.5)
   new Person(0.4, 0.1)
 ]
@@ -66,47 +68,72 @@ class PersonRendererProps
     @_srcMainBody = person._mainBody
     @_srcMainBodyPos = @_srcMainBody.GetPosition()
 
-    @_walkPos = vec2.create()
-    @_walkDelta = vec2.create()
-    @_walkDir = vec2.create()
-    @_walkDirCross = vec3.create()
-    @_walkAlongPhase = 0
-    @_walkAcrossPhase = 0
+    @_walkPos = vec2.fromValues(@_srcMainBodyPos.x, @_srcMainBodyPos.y)
+    @_walkPhase = 0
+    @_walkFootLPos = vec2.create() # last grounded nominal foot position
+    @_walkFootRPos = vec2.create()
+    @_walkFootLNextPos = vec2.create() # expected next nominal foot position
+    @_walkFootRNextPos = vec2.create()
+    @_footLocalOffset = vec2.create()
+    @_movingFootCurrentPos = vec2.create() # computation helper for current nominal foot position
+
+    @_footLMeshOffset = vec3.create() # displayed foot offset in 3D space
+    @_footRMeshOffset = vec3.create()
 
     @_pos = vec3.create()
-    @_footOffset = vec3.create()
     @model = mat4.create()
-    @modelTop = mat4.create()
     @modelFootL = mat4.create()
     @modelFootR = mat4.create()
     @colorTop = [ 1, 1, 0.8, 1 ]
     @colorBottom = [ 1, 0.8, 1, 1 ]
 
-  _updateWalk: ->
-    vec2.copy @_walkDelta, @_walkPos
+    vec2.set @_footLocalOffset, -Math.sin(@_srcMainBody.GetAngle()), Math.cos(@_srcMainBody.GetAngle())
+    vec2.scaleAndAdd @_walkFootLPos, @_walkPos, @_footLocalOffset, 0.4
+    vec2.scaleAndAdd @_walkFootRPos, @_walkPos, @_footLocalOffset, -0.4
+    vec2.copy @_walkFootLNextPos, @_walkFootLPos
+    vec2.copy @_walkFootRNextPos, @_walkFootRPos
+
+  _updateWalk: (deltaTime) ->
     vec2.set @_walkPos, @_srcMainBodyPos.x, @_srcMainBodyPos.y
-    vec2.sub @_walkDelta, @_walkPos, @_walkDelta
 
-    vec2.set @_walkDir, Math.cos(@_srcMainBody.GetAngle()), Math.sin(@_srcMainBody.GetAngle())
-    along = vec2.dot @_walkDelta, @_walkDir
-    vec2.cross @_walkDirCross, @_walkDelta, @_walkDir
+    FOOT_CYCLE_TIME = 0.5
 
-    @_walkAlongPhase += along
+    @_walkPhase += deltaTime / FOOT_CYCLE_TIME # @todo this accumulates error; significant?
+    @_walkPhase -= Math.floor @_walkPhase # fmod 1
 
-    if @_walkAlongPhase > 1
-      @_walkAlongPhase -= Math.floor @_walkAlongPhase
-    else if @_walkAlongPhase < 0
-      @_walkAlongPhase += Math.ceil -@_walkAlongPhase
+    leftFootIsLifted = @_walkPhase < 0.5
+    footPhaseAngle = @_walkPhase * 2 * Math.PI
+    footLift = Math.sin footPhaseAngle
+    footAlong = 0.5 * (1 - (if leftFootIsLifted then 1 else -1) * Math.cos(footPhaseAngle))
+    footAnim = (1 - footAlong) * (1 - footAlong) # non-linear foot snap
 
-    @_walkAcrossPhase += @_walkDirCross[2]
+    [ movingFootRefPos, movingFootNextPos, movingFootOffset ] = if leftFootIsLifted then [ @_walkFootLPos, @_walkFootLNextPos, @_footLMeshOffset ] else [ @_walkFootRPos, @_walkFootRNextPos, @_footRMeshOffset ]
+    [ stuckFootPos, stuckFootNextPos, stuckFootOffset ] = if leftFootIsLifted then [ @_walkFootRPos, @_walkFootRNextPos, @_footRMeshOffset ] else [ @_walkFootLPos, @_walkFootLNextPos, @_footLMeshOffset ]
 
-    if @_walkAcrossPhase > 1
-      @_walkAcrossPhase -= Math.floor @_walkAcrossPhase
-    else if @_walkAcrossPhase < 0
-      @_walkAcrossPhase += Math.ceil -@_walkAcrossPhase
+    movingFootTimeInAir = FOOT_CYCLE_TIME * (if leftFootIsLifted then @_walkPhase else @_walkPhase - 0.5)
 
-  update: ->
-    @_updateWalk()
+    vec2.set @_footLocalOffset, -Math.sin(@_srcMainBody.GetAngle()), Math.cos(@_srcMainBody.GetAngle())
+    if leftFootIsLifted
+      vec2.scale @_footLocalOffset, @_footLocalOffset, 0.4
+    else
+      vec2.scale @_footLocalOffset, @_footLocalOffset, -0.4
+
+    vec2.add @_movingFootCurrentPos, @_walkPos, @_footLocalOffset
+
+    # extrapolate next position of foot, while damping a bit
+    vec2.lerp movingFootNextPos, movingFootRefPos, @_movingFootCurrentPos, movingFootTimeInAir and 0.6 * FOOT_CYCLE_TIME / movingFootTimeInAir
+    vec2.lerp movingFootNextPos, movingFootRefPos, movingFootNextPos, 1 - footAnim
+
+    maxLift = Math.min 0.1, (0.3 * vec2.distance movingFootNextPos, movingFootRefPos)
+
+    vec3.set movingFootOffset, movingFootNextPos[0] - @_footLocalOffset[0], movingFootNextPos[1] - @_footLocalOffset[1], maxLift * footAnim
+
+    # preserve stuck foot reference position and reset displayed foot to ground level
+    vec2.copy stuckFootPos, stuckFootNextPos
+    vec3.set stuckFootOffset, stuckFootNextPos[0] + @_footLocalOffset[0], stuckFootNextPos[1] + @_footLocalOffset[1], 0
+
+  update: (deltaTime) ->
+    @_updateWalk deltaTime
 
     vec3.set @_pos, @_srcMainBodyPos.x, @_srcMainBodyPos.y, 0
 
@@ -114,13 +141,14 @@ class PersonRendererProps
     mat4.translate @model, @model, @_pos
     mat4.rotateZ @model, @model, @_srcMainBody.GetAngle()
 
-    mat4.rotateZ @modelTop, @model, -0.05 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
+    # feet are positioned independently in world space
+    mat4.identity @modelFootL # @todo reuse one identity source?
+    mat4.translate @modelFootL, @modelFootL, @_footLMeshOffset
+    mat4.rotateZ @modelFootL, @modelFootL, @_srcMainBody.GetAngle()
 
-    vec3.set @_footOffset, 0, 0, 0.08 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
-    mat4.translate @modelFootL, @model, @_footOffset
-
-    vec3.set @_footOffset, 0, 0, -0.08 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
-    mat4.translate @modelFootR, @model, @_footOffset
+    mat4.identity @modelFootR # @todo reuse one identity source?
+    mat4.translate @modelFootR, @modelFootR, @_footRMeshOffset
+    mat4.rotateZ @modelFootR, @modelFootR, @_srcMainBody.GetAngle()
 
 personRendererPropsList = (new PersonRendererProps(person) for person in personList)
 
@@ -143,7 +171,12 @@ setInterval ->
   world.Step(0.04, 10, 10)
 , 40
 
+lastRenderTime = null
+
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
+  deltaTime = if lastRenderTime is null then 0 else time - lastRenderTime
+  lastRenderTime = time
+
   vec3.set cameraPosition, 10, 10, -15 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
@@ -157,7 +190,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX lightTransform, lightTransform, -0.6
   mat4.rotateZ lightTransform, lightTransform, 3 * Math.PI / 4
 
-  props.update() for props in personRendererPropsList
+  props.update(deltaTime) for props in personRendererPropsList
 
   regl.clear
     color: [ 1, 1, 1, 1 ]
@@ -169,6 +202,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       colorB: [ 0.98, 0.98, 0.98, 1 ]
     , renderNonShadowing
 
-    orthoBoxShape orthoBoxes, render
+    # @todo restore
+    # orthoBoxShape orthoBoxes, render
 
     if personShape then personShape personRendererPropsList, render
