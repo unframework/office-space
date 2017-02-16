@@ -74,10 +74,11 @@ class PersonRendererProps
     @_walkAcrossPhase = 0
 
     @_pos = vec3.create()
-    @_scale = vec3.create()
+    @_footOffset = vec3.create()
     @model = mat4.create()
     @modelTop = mat4.create()
-    @modelFeet = mat4.create()
+    @modelFootL = mat4.create()
+    @modelFootR = mat4.create()
     @colorTop = [ 1, 1, 0.8, 1 ]
     @colorBottom = [ 1, 0.8, 1, 1 ]
 
@@ -113,11 +114,13 @@ class PersonRendererProps
     mat4.translate @model, @model, @_pos
     mat4.rotateZ @model, @model, @_srcMainBody.GetAngle()
 
-    vec3.set @_scale, 1, 1 + 0.05 * Math.sin(8 * @_walkAcrossPhase * 2 * Math.PI), 1
-
     mat4.rotateZ @modelTop, @model, -0.05 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
-    mat4.rotateZ @modelFeet, @model, 0.1 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
-    mat4.scale @modelFeet, @modelFeet, @_scale
+
+    vec3.set @_footOffset, 0, 0, 0.08 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
+    mat4.translate @modelFootL, @model, @_footOffset
+
+    vec3.set @_footOffset, 0, 0, -0.08 * Math.sin(8 * @_walkAlongPhase * 2 * Math.PI)
+    mat4.translate @modelFootR, @model, @_footOffset
 
 personRendererPropsList = (new PersonRendererProps(person) for person in personList)
 
