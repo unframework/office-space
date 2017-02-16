@@ -15,6 +15,7 @@
   "author": "Nick Matantsev <nick.matantsev@gmail.com>",
   "license": "UNLICENSED",
   "dependencies": {
+    "box2dweb": "^2.1.0-b",
     "brfs": "^1.4.3",
     "browserify": "^14.0.0",
     "coffeeify": "^2.1.0",

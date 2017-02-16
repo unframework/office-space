@@ -1,3 +1,10 @@
+b2Vec2 = require('box2dweb').Common.Math.b2Vec2
+b2World = require('box2dweb').Dynamics.b2World
+b2FixtureDef = require('box2dweb').Dynamics.b2FixtureDef
+b2CircleShape = require('box2dweb').Collision.Shapes.b2CircleShape
+b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
+b2Body = require('box2dweb').Dynamics.b2Body
+
 vec3 = require('gl-matrix').vec3
 mat4 = require('gl-matrix').mat4
 regl = require('regl')
@@ -16,13 +23,52 @@ CUBEWALL_HEIGHT = 1.2
 
 cameraPosition = vec3.create()
 camera = mat4.create()
-modelA = mat4.create()
-modelB = mat4.create()
 
 lightProjection = mat4.create()
 lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
+
+world = new b2World(new b2Vec2(0, 0), true)
+
+class Person
+  constructor: (x, y) ->
+    fixDef = new b2FixtureDef()
+    fixDef.density = 200.0
+    fixDef.friction = 2.0
+    fixDef.restitution = 0.1
+    fixDef.shape = new b2CircleShape(0.5)
+
+    bodyDef = new b2BodyDef()
+    bodyDef.type = b2Body.b2_dynamicBody
+    bodyDef.position.x = x
+    bodyDef.position.y = y
+
+    @_mainBody = world.CreateBody(bodyDef)
+    @_mainBody.CreateFixture(fixDef)
+    @_mainBody.SetAngularDamping(1.8)
+
+personRendererPropsList = []
+
+class PersonRendererProps
+  constructor: (person) ->
+    console.log person
+    @_pos = vec3.create()
+    @_srcMainBodyPos = person._mainBody.GetPosition()
+
+    @model = mat4.create()
+    @colorTop = [ 1, 1, 0.8, 1 ]
+    @colorBottom = [ 1, 0.8, 1, 1 ]
+
+  update: ->
+    vec3.set @_pos, @_srcMainBodyPos.x, @_srcMainBodyPos.y, 0
+
+    mat4.identity @model # @todo reuse one identity source?
+    mat4.translate @model, @model, @_pos
+
+personRendererPropsList.push new PersonRendererProps(new Person(0, 0))
+personRendererPropsList.push new PersonRendererProps(new Person(-0.5, 0.5))
+personRendererPropsList.push new PersonRendererProps(new Person(0.4, 0.1))
 
 orthoBoxes = [].concat ([].concat (
   for r in [ -1 .. 1 ]
@@ -39,6 +85,10 @@ orthoBoxes = [].concat ([].concat (
         }
 )...)...
 
+setInterval ->
+  world.Step(0.04, 10, 10)
+, 40
+
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
   vec3.set cameraPosition, 10, 10, -15 + 0.2 * Math.sin(time / 8)
 
@@ -53,13 +103,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX lightTransform, lightTransform, -0.6
   mat4.rotateZ lightTransform, lightTransform, 3 * Math.PI / 4
 
-  mat4.identity modelA
-  mat4.translate modelA, modelA, [ -0.5, 0.5, 0 ]
-  mat4.rotateZ modelA, modelA, -1
-
-  mat4.identity modelB
-  mat4.translate modelB, modelB, [ 0.4, 0.1, 0 ]
-  mat4.rotateZ modelB, modelB, -3
+  props.update() for props in personRendererPropsList
 
   regl.clear
     color: [ 1, 1, 1, 1 ]
@@ -73,17 +117,4 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
 
     orthoBoxShape orthoBoxes, render
 
-    if personShape then personShape [
-      {
-        model: modelA
-        modelTop: mat4.rotateY(mat4.create(), modelA, 0.04 + 0.05 * Math.sin(time * 6.1))
-        colorTop: [ 1, 1, 0.8, 1 ]
-        colorBottom: [ 1, 0.8, 1, 1 ]
-      }
-      {
-        model: modelB
-        modelTop: mat4.rotateZ(mat4.create(), modelB, 0.2 * Math.sin(time * 5.3))
-        colorTop: [ 1, 0.8, 1, 1 ]
-        colorBottom: [ 0.8, 1, 1, 1 ]
-      }
-    ], render
+    if personShape then personShape personRendererPropsList, render
