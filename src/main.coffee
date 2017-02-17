@@ -117,7 +117,6 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     # @todo restore
     # orthoBoxShape orthoBoxes, render
 
-    # @todo avoid rendering if no physics processed yet - or maybe just init the cycle tracker properly!
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
       pr.draw render

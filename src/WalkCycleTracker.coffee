@@ -28,6 +28,9 @@ class WalkCycleTracker
     vec2.copy @_walkFootLLiftPos, @_walkFootLStartPos
     vec2.copy @_walkFootRLiftPos, @_walkFootRStartPos
 
+    vec3.set @footLMeshOffset, @_walkPos[0], @_walkPos[1], 0
+    vec3.set @footRMeshOffset, @_walkPos[0], @_walkPos[1], 0
+
   # the time step is expected to be fixed, for smoother animation
   onPhysicsStep: ->
     vec2.set @_walkPos, @_physicsBodyPos.x, @_physicsBodyPos.y
