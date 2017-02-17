@@ -11,7 +11,7 @@ class World
     physicsWorld = new b2World(new b2Vec2(0, 0), true)
     physicsStepDuration = STEP_TIME * SLOW_FRACTION
 
-    @_personList = for i in [ 0 ... 2 ]
+    @_personList = for i in [ 0 ... 10 ]
       new Person(physicsStepDuration, physicsWorld, Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
 
     setInterval =>

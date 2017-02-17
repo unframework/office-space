@@ -33,11 +33,11 @@ class PersonRenderer
   constructor: ->
     @_pos = vec3.create()
 
-    @model = mat4.create()
-    @modelFootL = mat4.create()
-    @modelFootR = mat4.create()
-    @colorTop = vec4.create()
-    @colorBottom = vec4.create()
+    @_model_out = mat4.create()
+    @_modelFootL_out = mat4.create()
+    @_modelFootR_out = mat4.create()
+    @_colorTop_out = vec4.create()
+    @_colorBottom_out = vec4.create()
 
   update: (person) ->
     mainBody = person._mainBody
@@ -46,32 +46,32 @@ class PersonRenderer
 
     vec3.set @_pos, mainBodyPos.x, mainBodyPos.y, 0
 
-    mat4.identity @model # @todo reuse one identity source?
-    mat4.translate @model, @model, @_pos
-    mat4.rotateZ @model, @model, mainBody.GetAngle()
+    mat4.identity @_model_out # @todo reuse one identity source?
+    mat4.translate @_model_out, @_model_out, @_pos
+    mat4.rotateZ @_model_out, @_model_out, mainBody.GetAngle()
 
     # feet are positioned independently in world space
-    mat4.identity @modelFootL # @todo reuse one identity source?
-    mat4.translate @modelFootL, @modelFootL, walkTracker.footLMeshOffset
-    mat4.rotateZ @modelFootL, @modelFootL, mainBody.GetAngle()
+    mat4.identity @_modelFootL_out # @todo reuse one identity source?
+    mat4.translate @_modelFootL_out, @_modelFootL_out, walkTracker.footLMeshOffset
+    mat4.rotateZ @_modelFootL_out, @_modelFootL_out, mainBody.GetAngle()
 
-    mat4.identity @modelFootR # @todo reuse one identity source?
-    mat4.translate @modelFootR, @modelFootR, walkTracker.footRMeshOffset
-    mat4.rotateZ @modelFootR, @modelFootR, mainBody.GetAngle()
+    mat4.identity @_modelFootR_out # @todo reuse one identity source?
+    mat4.translate @_modelFootR_out, @_modelFootR_out, walkTracker.footRMeshOffset
+    mat4.rotateZ @_modelFootR_out, @_modelFootR_out, mainBody.GetAngle()
 
-    vec4.set @colorTop, person._color.red(), person._color.green(), person._color.blue(), 1
-    vec4.set @colorBottom, person._color2.red(), person._color2.green(), person._color2.blue(), 1
+    vec4.set @_colorTop_out, person._color.red(), person._color.green(), person._color.blue(), 1
+    vec4.set @_colorBottom_out, person._color2.red(), person._color2.green(), person._color2.blue(), 1
 
   draw: regl
     # override default person shape parameters to source from computed data attached to "this"
     uniforms:
-      model: regl.this 'model'
-      modelTop: regl.this 'model'
-      modelFootL: regl.this 'modelFootL'
-      modelFootR: regl.this 'modelFootR'
+      model: regl.this '_model_out'
+      modelTop: regl.this '_model_out'
+      modelFootL: regl.this '_modelFootL_out'
+      modelFootR: regl.this '_modelFootR_out'
 
-      colorTop: regl.this 'colorTop'
-      colorBottom: regl.this 'colorBottom'
+      colorTop: regl.this '_colorTop_out'
+      colorBottom: regl.this '_colorBottom_out'
 
 pr = new PersonRenderer()
 
@@ -128,11 +128,3 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.4 ]
       translate: [ person._walkTarget.x, person._walkTarget.y, 0.001 ]
       radius: 0.2
-
-    debugRayXRayShape
-      camera: camera
-      color: [ 0.2, 0.2, 0.2, if person._avoidanceGoSlow then 0.4 else 0.8 ]
-      translate: [ person._mainBody.GetPosition().x, person._mainBody.GetPosition().y, 0.001 ]
-      radius: 0.01
-      length: 0.8
-      direction: person._debugTargetAngle
