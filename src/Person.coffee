@@ -40,6 +40,8 @@ class Person
     @_avoidanceGoLeft = false
     @_avoidanceGoRight = false
     @_avoidanceGoSlow = false
+    @_avoidanceStuckTime = 0
+    @_avoidanceAverageDecision = 0 # rolling average of avoidance direction change decisions
 
     @_walkTargetDelta = new b2Vec2(0, 0) # computation helper
     @_walkImpulse = new b2Vec2(0, 0)
@@ -108,6 +110,21 @@ class Person
         @_mainBody.GetPosition(),
         @_walkRayEnd
       )
+
+    @_avoidanceAverageDecision = @_avoidanceAverageDecision * 0.8 + (if @_avoidanceGoLeft then 0.2 else 0) + (if @_avoidanceGoRight then -0.2 else 0)
+
+    if @_avoidanceGoSlow and Math.abs(@_avoidanceAverageDecision) < 0.8
+      @_avoidanceStuckTime += @_physicsStepDuration
+    else
+      @_avoidanceStuckTime = 0
+
+    if @_avoidanceStuckTime > 0.8
+      # back up for a while
+      @_avoidanceGoLeft = true
+      @_avoidanceGoRight = true
+      @_avoidanceGoSlow = false
+      @_avoidanceTimeout += 0.1 + Math.random() * 0.3
+      @_avoidanceStuckTime = 0
 
     avoidanceAngle = if @_avoidanceGoSlow then 1.5 else 0.9
     targetAngle += (if @_avoidanceGoLeft then avoidanceAngle else 0) + (if @_avoidanceGoRight then -avoidanceAngle else 0)
