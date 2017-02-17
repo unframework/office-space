@@ -44,7 +44,7 @@ class Person
   onPhysicsStep: ->
     @_walkTracker.onPhysicsStep()
 
-    while true
+    for i in [ 0 ... 10 ] # limit attempts
       # update our targeted walking
       @_walkImpulse.SetV @_walkTarget
       @_walkImpulse.Subtract @_mainBody.GetPosition()
@@ -55,17 +55,17 @@ class Person
         @_walkTarget = new b2Vec2(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
         continue
 
-      # update direction we face when far enough from target
-      if dist > 0.2
-          @_orientationAngle = Math.atan2(@_walkImpulse.y, @_walkImpulse.x)
-
-      vel = b2Math.Dot(@_mainBody.GetLinearVelocity(), @_walkImpulse) / dist
-      max = Math.min(1, dist / 0.4) * 0.7
-      diff = b2Math.Clamp(max - vel, -0.3, 0.3)
-
-      @_walkImpulse.Multiply @_mainBody.GetMass() * diff / dist
-
       break
+
+    # update direction we face when far enough from target
+    if dist > 0.2
+        @_orientationAngle = Math.atan2(@_walkImpulse.y, @_walkImpulse.x)
+
+    vel = b2Math.Dot(@_mainBody.GetLinearVelocity(), @_walkImpulse) / dist
+    max = Math.min(1, dist / 0.4) * 0.7
+    diff = b2Math.Clamp(max - vel, -0.3, 0.3)
+
+    @_walkImpulse.Multiply @_mainBody.GetMass() * diff / dist
 
     @_mainBody.ApplyImpulse @_walkImpulse, @_mainBody.GetPosition()
 
