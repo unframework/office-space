@@ -11,6 +11,7 @@ require('./PersonShape.coffee')(regl).then (v) -> personShape = v
 
 groundShape = require('./GroundShape.coffee')(regl)
 orthoBoxShape = require('./OrthoBoxShape.coffee')(regl)
+debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 
 CUBEWALL_THICKNESS = 0.04
 CUBEWALL_HEIGHT = 1.2
@@ -103,3 +104,10 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     # orthoBoxShape orthoBoxes, render
 
     if personShape then personShape personRendererPropsList, render
+
+  for person in world._personList
+    debugTargetShape
+      camera: camera
+      color: [ 0.5, 0, 0, 0.4 ]
+      translate: [ person._walkTarget.x, person._walkTarget.y, 0.001 ]
+      size: 0.2
