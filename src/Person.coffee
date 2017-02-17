@@ -31,7 +31,7 @@ class Person
     @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
 
-    @_walkTracker = new WalkCycleTracker(physicsStepDuration, @_mainBody)
+    @_walkTracker = new WalkCycleTracker(physicsStepDuration, @_mainBody, 0.125)
 
     @_walkTarget = new b2Vec2(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
     @_orientationAngle = bodyDef.angle

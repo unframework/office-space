@@ -108,6 +108,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     # @todo restore
     # orthoBoxShape orthoBoxes, render
 
+    # @todo avoid rendering if no physics processed yet - or maybe just init the cycle tracker properly!
     if personShape then personShape personRendererPropsList, render
 
   for person in world._personList
@@ -120,12 +121,28 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     # foot tracker debug
     debugTargetXRayShape
       camera: camera
-      color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.8 ]
-      translate: [ person._walkTracker._walkFootLNextPos[0], person._walkTracker._walkFootLNextPos[1], 0.001 ]
-      size: 0.1
+      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
+      translate: [ person._walkTracker._movingFootCurrentPos[0], person._walkTracker._movingFootCurrentPos[1], 0.001 ]
+      size: 0.02
 
     debugTargetXRayShape
       camera: camera
-      color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.8 ]
+      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
+      translate: [ person._walkTracker._walkFootLNextPos[0], person._walkTracker._walkFootLNextPos[1], 0.001 ]
+      size: 0.02
+    debugTargetXRayShape
+      camera: camera
+      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
+      translate: [ person._walkTracker._walkFootLPos[0], person._walkTracker._walkFootLPos[1], 0.001 ]
+      size: 0.02
+
+    debugTargetXRayShape
+      camera: camera
+      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
       translate: [ person._walkTracker._walkFootRNextPos[0], person._walkTracker._walkFootRNextPos[1], 0.001 ]
-      size: 0.1
+      size: 0.02
+    debugTargetXRayShape
+      camera: camera
+      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
+      translate: [ person._walkTracker._walkFootRPos[0], person._walkTracker._walkFootRPos[1], 0.001 ]
+      size: 0.02

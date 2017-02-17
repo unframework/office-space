@@ -1,10 +1,9 @@
 vec2 = require('gl-matrix').vec2
 vec3 = require('gl-matrix').vec3
 
-# @todo during rotation the legs go way out of whack
 # @todo in general, fasten the cycle when strides need to be longer?
 class WalkCycleTracker
-  constructor: (@_physicsStepDuration, @_physicsBody) ->
+  constructor: (@_physicsStepDuration, @_physicsBody, @_footOffsetDistance) ->
     @_physicsBodyPos = @_physicsBody.GetPosition()
 
     @_walkPos = vec2.fromValues(@_physicsBodyPos.x, @_physicsBodyPos.y)
@@ -20,8 +19,8 @@ class WalkCycleTracker
     @footRMeshOffset = vec3.create()
 
     vec2.set @_footLocalOffset, -Math.sin(@_physicsBody.GetAngle()), Math.cos(@_physicsBody.GetAngle())
-    vec2.scaleAndAdd @_walkFootLPos, @_walkPos, @_footLocalOffset, 0.4
-    vec2.scaleAndAdd @_walkFootRPos, @_walkPos, @_footLocalOffset, -0.4
+    vec2.scaleAndAdd @_walkFootLPos, @_walkPos, @_footLocalOffset, @_footOffsetDistance
+    vec2.scaleAndAdd @_walkFootRPos, @_walkPos, @_footLocalOffset, -@_footOffsetDistance
     vec2.copy @_walkFootLNextPos, @_walkFootLPos
     vec2.copy @_walkFootRNextPos, @_walkFootRPos
 
@@ -50,12 +49,13 @@ class WalkCycleTracker
     movingFootTimeInAir = FOOT_CYCLE_TIME * (if leftFootIsLifted then phase else phase - 0.5)
 
     vec2.set @_footLocalOffset, -Math.sin(@_physicsBody.GetAngle()), Math.cos(@_physicsBody.GetAngle())
-    vec2.scale @_footLocalOffset, @_footLocalOffset, 0.4 * leftFootSign
+    vec2.scale @_footLocalOffset, @_footLocalOffset, @_footOffsetDistance * leftFootSign
 
     vec2.add @_movingFootCurrentPos, @_walkPos, @_footLocalOffset
 
-    # extrapolate next position of foot, while damping a bit
-    vec2.lerp movingFootNextPos, movingFootRefPos, @_movingFootCurrentPos, movingFootTimeInAir and 0.6 * FOOT_CYCLE_TIME / movingFootTimeInAir
+    # extrapolate position of foot during next quarter-cycle (i.e. mid-way through next foot's lift)
+    # @todo lateral foot deviation does not dampen well (keeps wobbling side-to-side)
+    vec2.lerp movingFootNextPos, @_movingFootCurrentPos, movingFootRefPos, movingFootTimeInAir and -0.25 * FOOT_CYCLE_TIME / movingFootTimeInAir
     vec2.lerp movingFootNextPos, movingFootRefPos, movingFootNextPos, 1 - footAnim
 
     maxLift = Math.min 0.1, (0.3 * vec2.distance movingFootNextPos, movingFootRefPos)
