@@ -18,7 +18,7 @@ class Person
     fixDef.density = 200.0
     fixDef.friction = 0.4
     fixDef.restitution = 0.1
-    fixDef.shape = new b2CircleShape(0.3)
+    fixDef.shape = new b2CircleShape(0.25)
 
     bodyDef = new b2BodyDef()
     bodyDef.type = b2Body.b2_dynamicBody
@@ -33,7 +33,7 @@ class Person
 
     @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, 0.125)
 
-    @_walkTarget = new b2Vec2(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
+    @_walkTarget = new b2Vec2(100, Math.random() * 5 - 2.5)
     @_orientationAngle = bodyDef.angle
 
     @_avoidanceTimeout = 0
@@ -151,5 +151,9 @@ class Person
     angVel = @_mainBody.GetAngularVelocity()
     targetAngVel = Math.sign(angleDiff) * 4 * Math.min 1, Math.abs(angleDiff) / 0.7
     @_mainBody.SetAngularVelocity angVel + b2Math.Clamp(targetAngVel - angVel, -0.8, 0.8)
+
+  disconnectPhysics: ->
+    @_physicsWorld.DestroyBody(@_mainBody)
+    @_mainBody = null
 
 module.exports = Person
