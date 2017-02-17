@@ -5,10 +5,15 @@ b2CircleShape = require('box2dweb').Collision.Shapes.b2CircleShape
 b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
 b2Body = require('box2dweb').Dynamics.b2Body
 
+color = require('onecolor')
+
 WalkCycleTracker = require('./WalkCycleTracker.coffee')
 
 class Person
   constructor: (physicsStepDuration, physicsWorld, x, y, @_debug) ->
+    @_color = new color.HSL(Math.random(), 0.8, 0.8).rgb()
+    @_color2 = @_color.hue(0.08, true).lightness(0.7)
+
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
     fixDef.friction = 0.4

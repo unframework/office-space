@@ -1,4 +1,5 @@
 vec3 = require('gl-matrix').vec3
+vec4 = require('gl-matrix').vec4
 mat4 = require('gl-matrix').mat4
 regl = require('regl')
   extensions: 'oes_texture_float'
@@ -26,6 +27,9 @@ renderClayScene = new ClayRenderer regl
 
 world = new World()
 
+color2vec = (color) ->
+  vec4.fromValues color.red(), color.green(), color.blue(), 1
+
 class PersonRendererProps
   constructor: (person) ->
     @_debug = person._debug
@@ -38,8 +42,8 @@ class PersonRendererProps
     @model = mat4.create()
     @modelFootL = mat4.create()
     @modelFootR = mat4.create()
-    @colorTop = [ 1, 1, 0.8, 1 ]
-    @colorBottom = [ 1, 0.8, 1, 1 ]
+    @colorTop = color2vec person._color
+    @colorBottom = color2vec person._color2
 
   update: ->
     vec3.set @_pos, @_srcMainBodyPos.x, @_srcMainBodyPos.y, 0
