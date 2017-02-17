@@ -33,7 +33,7 @@ class WalkCycleTracker
     vec2.set @_walkPos, @_physicsBodyPos.x, @_physicsBodyPos.y
 
     STRIDE_TIME = 0.25
-    FOOT_SUPPORT_PHASE = 0.25 # 0 .. 1, good values are between 0.25 and 0.5 (higher means more foot lag)
+    STRIDE_FOOT_SUPPORT_FRACTION = 0.5 # 0 .. 1, good values are between 0.5 and 1 (higher means more foot lag)
 
     @_strideTime += @_physicsStepDuration
     strideOverflow = Math.floor @_strideTime / STRIDE_TIME
@@ -75,9 +75,9 @@ class WalkCycleTracker
     # -> Pend = Pnom + (strideDur - elapsedCycleTime + halfStrideDur) * (Pnom - Pstart) / (halfStrideDur + elapsedCycleTime)
     # -> Pend = Pnom + (Pstart - Pnom) * -(strideDur - elapsedCycleTime + halfStrideDur) / (halfStrideDur + elapsedCycleTime)
     # -> Pend = lerp(Pnom, Pstart, -(strideDur - elapsedCycleTime + halfStrideDur) / (halfStrideDur + elapsedCycleTime))
-    # of note: tried using a (strideDur - elapsed) / (strideDur + elapsed) coeff instead - also works, but the cycle is then shifted (feet lag behind a bit)
     # @todo lateral foot deviation does not dampen well (keeps wobbling side-to-side)
-    vec2.lerp @_movingFootEndPos, @_movingFootCurrentPos, movingFootStartPos, -((1 - FOOT_SUPPORT_PHASE) * 2 * STRIDE_TIME - @_strideTime) / (FOOT_SUPPORT_PHASE * 2 * STRIDE_TIME + @_strideTime)
+    remainingStrideTime = STRIDE_TIME - @_strideTime
+    vec2.lerp @_movingFootEndPos, @_movingFootCurrentPos, movingFootStartPos, -(remainingStrideTime + (1 - STRIDE_FOOT_SUPPORT_FRACTION) * STRIDE_TIME) / (STRIDE_FOOT_SUPPORT_FRACTION * STRIDE_TIME + @_strideTime)
 
     # animate actual foot position towards the target spot
     vec2.lerp movingFootLiftPos, movingFootStartPos, @_movingFootEndPos, 1 - footAnim
