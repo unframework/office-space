@@ -13,6 +13,7 @@ require('./PersonShape.coffee')(regl).then (v) -> personShape = v
 groundShape = require('./GroundShape.coffee')(regl)
 orthoBoxShape = require('./OrthoBoxShape.coffee')(regl)
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
+debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
 
 CUBEWALL_THICKNESS = 0.04
 CUBEWALL_HEIGHT = 1.2
@@ -115,3 +116,16 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.4 ]
       translate: [ person._walkTarget.x, person._walkTarget.y, 0.001 ]
       size: 0.2
+
+    # foot tracker debug
+    debugTargetXRayShape
+      camera: camera
+      color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.8 ]
+      translate: [ person._walkTracker._walkFootLNextPos[0], person._walkTracker._walkFootLNextPos[1], 0.001 ]
+      size: 0.1
+
+    debugTargetXRayShape
+      camera: camera
+      color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.8 ]
+      translate: [ person._walkTracker._walkFootRNextPos[0], person._walkTracker._walkFootRNextPos[1], 0.001 ]
+      size: 0.1

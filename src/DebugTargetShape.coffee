@@ -1,6 +1,6 @@
 `var glsl = require('glslify')` # glslify transform does not detect generated expression otherwise
 
-DebugTargetShape = (regl) -> regl
+DebugTargetShape = (regl, isXray) -> regl
   vert: glsl '''
     precision mediump float;
 
@@ -42,7 +42,11 @@ DebugTargetShape = (regl) -> regl
   '''
 
   depth:
-    func: 'lequal' # @todo meh just use "always" and disable writing? but then idempotence is not there
+    if isXray
+      func: 'always'
+      mask: false
+    else
+      func: 'lequal'
 
   uniforms:
     camera: regl.prop 'camera'
