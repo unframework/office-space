@@ -8,11 +8,8 @@ class World
     physicsWorld = new b2World(new b2Vec2(0, 0), true)
     physicsStepDuration = 0.04
 
-    @_personList = [
-      new Person(physicsStepDuration, physicsWorld, 0, -0.2, true)
-      new Person(physicsStepDuration, physicsWorld, -0.5, 0.5)
-      new Person(physicsStepDuration, physicsWorld, 0.4, 0.1)
-    ]
+    @_personList = for i in [ 0 ... 10 ]
+      new Person(physicsStepDuration, physicsWorld, Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
 
     setInterval =>
       physicsWorld.Step(physicsStepDuration, 10, 10)

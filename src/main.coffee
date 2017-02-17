@@ -112,6 +112,6 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   for person in world._personList
     debugTargetShape
       camera: camera
-      color: [ 0.5, 0, 0, 0.4 ]
+      color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.4 ]
       translate: [ person._walkTarget.x, person._walkTarget.y, 0.001 ]
       size: 0.2
