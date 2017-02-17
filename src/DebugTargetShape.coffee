@@ -6,7 +6,7 @@ DebugTargetShape = (regl, isXray) -> regl
 
     uniform mat4 camera;
     uniform vec3 translate;
-    uniform float size;
+    uniform float radius;
     attribute vec2 position;
 
     varying vec2 fPosition;
@@ -14,7 +14,7 @@ DebugTargetShape = (regl, isXray) -> regl
     void main() {
       fPosition = position;
 
-      gl_Position = camera * vec4(translate + vec3(position * size, 0), 1);
+      gl_Position = camera * vec4(translate + vec3(position * radius, 0), 1);
     }
   '''
 
@@ -51,7 +51,7 @@ DebugTargetShape = (regl, isXray) -> regl
   uniforms:
     camera: regl.prop 'camera'
     translate: regl.prop 'translate'
-    size: regl.prop 'size'
+    radius: regl.prop 'radius'
     color: regl.prop 'color'
 
   attributes:

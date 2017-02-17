@@ -116,27 +116,4 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       camera: camera
       color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.4 ]
       translate: [ person._walkTarget.x, person._walkTarget.y, 0.001 ]
-      size: 0.2
-
-    # foot tracker debug
-    debugTargetXRayShape
-      camera: camera
-      color: [ person._color2.red() * 0.6, person._color2.green() * 0.6, person._color2.blue() * 0.6, 1 ]
-      translate: [ person._walkTracker._movingFootCurrentPos[0], person._walkTracker._movingFootCurrentPos[1], 0.001 ]
-      size: 0.02
-    debugTargetXRayShape
-      camera: camera
-      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
-      translate: [ person._walkTracker._movingFootEndPos[0], person._walkTracker._movingFootEndPos[1], 0.001 ]
-      size: 0.03
-
-    debugTargetXRayShape
-      camera: camera
-      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
-      translate: [ person._walkTracker._walkFootLStartPos[0], person._walkTracker._walkFootLStartPos[1], 0.001 ]
-      size: 0.02
-    debugTargetXRayShape
-      camera: camera
-      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
-      translate: [ person._walkTracker._walkFootRStartPos[0], person._walkTracker._walkFootRStartPos[1], 0.001 ]
-      size: 0.02
+      radius: 0.2
