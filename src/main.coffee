@@ -14,6 +14,7 @@ groundShape = require('./GroundShape.coffee')(regl)
 orthoBoxShape = require('./OrthoBoxShape.coffee')(regl)
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
+debugRayXRayShape = require('./DebugRayShape.coffee')(regl, true)
 
 CUBEWALL_THICKNESS = 0.04
 CUBEWALL_HEIGHT = 1.2
@@ -117,3 +118,11 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.4 ]
       translate: [ person._walkTarget.x, person._walkTarget.y, 0.001 ]
       radius: 0.2
+
+    debugRayXRayShape
+      camera: camera
+      color: [ 0.2, 0.2, 0.2, if person._avoidanceGoSlow then 0.4 else 0.8 ]
+      translate: [ person._mainBody.GetPosition().x, person._mainBody.GetPosition().y, 0.001 ]
+      radius: 0.01
+      length: 0.8
+      direction: person._debugTargetAngle
