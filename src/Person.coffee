@@ -44,26 +44,28 @@ class Person
   onPhysicsStep: ->
     @_walkTracker.onPhysicsStep()
 
-    # update our targeted walking
-    @_walkImpulse.SetV @_walkTarget
-    @_walkImpulse.Subtract @_mainBody.GetPosition()
+    while true
+      # update our targeted walking
+      @_walkImpulse.SetV @_walkTarget
+      @_walkImpulse.Subtract @_mainBody.GetPosition()
 
-    dist = @_walkImpulse.Length()
+      dist = @_walkImpulse.Length()
 
-    # update direction we face when far enough from target
-    if dist > 0.2
-        @_orientationAngle = Math.atan2(@_walkImpulse.y, @_walkImpulse.x)
+      if dist < 0.1
+        @_walkTarget = new b2Vec2(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
+        continue
 
-    if dist > 0.1
-        vel = b2Math.Dot(@_mainBody.GetLinearVelocity(), @_walkImpulse) / dist
-        max = Math.min(1, dist / 0.4) * 0.7
-        diff = b2Math.Clamp(max - vel, -0.3, 0.3)
+      # update direction we face when far enough from target
+      if dist > 0.2
+          @_orientationAngle = Math.atan2(@_walkImpulse.y, @_walkImpulse.x)
 
-        @_walkImpulse.Multiply @_mainBody.GetMass() * diff / dist
-    else
-        # simply damp any velocity
-        @_walkImpulse.SetV @_mainBody.GetLinearVelocity()
-        @_walkImpulse.Multiply @_mainBody.GetMass() * -0.8
+      vel = b2Math.Dot(@_mainBody.GetLinearVelocity(), @_walkImpulse) / dist
+      max = Math.min(1, dist / 0.4) * 0.7
+      diff = b2Math.Clamp(max - vel, -0.3, 0.3)
+
+      @_walkImpulse.Multiply @_mainBody.GetMass() * diff / dist
+
+      break
 
     @_mainBody.ApplyImpulse @_walkImpulse, @_mainBody.GetPosition()
 

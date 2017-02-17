@@ -1,6 +1,8 @@
 vec2 = require('gl-matrix').vec2
 vec3 = require('gl-matrix').vec3
 
+# @todo during rotation the legs go way out of whack
+# @todo in general, fasten the cycle when strides need to be longer?
 class WalkCycleTracker
   constructor: (@_physicsStepDuration, @_physicsBody) ->
     @_physicsBodyPos = @_physicsBody.GetPosition()
