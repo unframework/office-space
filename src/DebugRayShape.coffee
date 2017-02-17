@@ -1,12 +1,14 @@
 `var glsl = require('glslify')` # glslify transform does not detect generated expression otherwise
 
-DebugTargetShape = (regl, isXray) -> regl
+DebugRayShape = (regl, isXray) -> regl
   vert: glsl '''
     precision mediump float;
 
     uniform mat4 camera;
     uniform vec3 translate;
     uniform float radius;
+    uniform float length;
+    uniform float direction;
     attribute vec2 position;
 
     varying vec2 fPosition;
@@ -14,7 +16,12 @@ DebugTargetShape = (regl, isXray) -> regl
     void main() {
       fPosition = position;
 
-      gl_Position = camera * vec4(translate + vec3(position * radius, 0), 1);
+      float dirX = cos(direction);
+      float dirY = sin(direction);
+
+      vec2 xy = mat2(dirX, dirY, -dirY, dirX) * (position.xy * vec2(length, radius));
+
+      gl_Position = camera * vec4(translate + vec3(xy, 0), 1);
     }
   '''
 
@@ -31,10 +38,6 @@ DebugTargetShape = (regl, isXray) -> regl
       gl_FragColor = vec4(color.rgb, 1);
 
       // discarding after assigning gl_FragColor, apparently may not discard otherwise due to bug
-      if (sqrt(dot(fPosition, fPosition)) > 1.0) {
-        discard;
-      }
-
       if (dither(gl_FragCoord.xy, color.a) < 1.0) {
         discard;
       }
@@ -51,18 +54,20 @@ DebugTargetShape = (regl, isXray) -> regl
   uniforms:
     camera: regl.prop 'camera'
     translate: regl.prop 'translate'
+    length: regl.prop 'length'
+    direction: regl.prop 'direction'
     radius: regl.prop 'radius'
     color: regl.prop 'color'
 
   attributes:
     position: regl.buffer [
-      [-1, -1]
+      [0, -1]
       [1, -1]
       [1,  1]
-      [-1, 1]
+      [0, 1]
     ]
 
   primitive: 'triangle fan'
   count: 4
 
-module.exports = DebugTargetShape
+module.exports = DebugRayShape

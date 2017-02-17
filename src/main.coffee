@@ -14,6 +14,7 @@ groundShape = require('./GroundShape.coffee')(regl)
 orthoBoxShape = require('./OrthoBoxShape.coffee')(regl)
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
+debugRayXRayShape = require('./DebugRayShape.coffee')(regl, true)
 
 CUBEWALL_THICKNESS = 0.04
 CUBEWALL_HEIGHT = 1.2
@@ -116,27 +117,12 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       camera: camera
       color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.4 ]
       translate: [ person._walkTarget.x, person._walkTarget.y, 0.001 ]
-      size: 0.2
+      radius: 0.2
 
-    # foot tracker debug
-    debugTargetXRayShape
+    debugRayXRayShape
       camera: camera
-      color: [ person._color2.red() * 0.6, person._color2.green() * 0.6, person._color2.blue() * 0.6, 1 ]
-      translate: [ person._walkTracker._movingFootCurrentPos[0], person._walkTracker._movingFootCurrentPos[1], 0.001 ]
-      size: 0.02
-    debugTargetXRayShape
-      camera: camera
-      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
-      translate: [ person._walkTracker._movingFootEndPos[0], person._walkTracker._movingFootEndPos[1], 0.001 ]
-      size: 0.03
-
-    debugTargetXRayShape
-      camera: camera
-      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
-      translate: [ person._walkTracker._walkFootLStartPos[0], person._walkTracker._walkFootLStartPos[1], 0.001 ]
-      size: 0.02
-    debugTargetXRayShape
-      camera: camera
-      color: [ person._color2.red() * 0.3, person._color2.green() * 0.3, person._color2.blue() * 0.3, 1 ]
-      translate: [ person._walkTracker._walkFootRStartPos[0], person._walkTracker._walkFootRStartPos[1], 0.001 ]
-      size: 0.02
+      color: [ 0.2, 0.2, 0.2, if person._avoidanceGoSlow then 0.4 else 0.8 ]
+      translate: [ person._mainBody.GetPosition().x, person._mainBody.GetPosition().y, 0.001 ]
+      radius: 0.01
+      length: 0.8
+      direction: person._debugTargetAngle
