@@ -2,6 +2,7 @@ vec2 = require('gl-matrix').vec2
 vec3 = require('gl-matrix').vec3
 
 # @todo in general, fasten the cycle when strides need to be longer?
+# @todo "drunk mode"? just add random variations
 class WalkCycleTracker
   constructor: (@_physicsStepDuration, @_physicsBody, @_footOffsetDistance) ->
     @_physicsBodyPos = @_physicsBody.GetPosition()
@@ -31,6 +32,7 @@ class WalkCycleTracker
     vec2.set @_walkPos, @_physicsBodyPos.x, @_physicsBodyPos.y
 
     FOOT_CYCLE_TIME = 0.5
+    FOOT_SUPPORT_PHASE = 0.25 # 0 .. 1, good values are between 0.25 and 0.5 (higher means more foot lag)
 
     @_walkCycleTime += @_physicsStepDuration
 
@@ -79,7 +81,7 @@ class WalkCycleTracker
     # -> Pend = lerp(Pnom, Pstart, -(halfCycleTime - elapsedCycleTime + quarterCycleTime) / (quarterCycleTime + elapsedCycleTime))
     # of note: tried using a (halfCycle - elapsed) / (halfCycle + elapsed) coeff instead - also works, but the cycle is then shifted (feet lag behind a bit)
     # @todo lateral foot deviation does not dampen well (keeps wobbling side-to-side)
-    vec2.lerp @_movingFootEndPos, @_movingFootCurrentPos, movingFootStartPos, -(0.75 * FOOT_CYCLE_TIME - movingFootTimeInAir) / (0.25 * FOOT_CYCLE_TIME + movingFootTimeInAir)
+    vec2.lerp @_movingFootEndPos, @_movingFootCurrentPos, movingFootStartPos, -((1 - FOOT_SUPPORT_PHASE) * FOOT_CYCLE_TIME - movingFootTimeInAir) / (FOOT_SUPPORT_PHASE * FOOT_CYCLE_TIME + movingFootTimeInAir)
 
     # animate actual foot position towards the target spot
     vec2.lerp movingFootLiftPos, movingFootStartPos, @_movingFootEndPos, 1 - footAnim
