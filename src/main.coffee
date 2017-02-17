@@ -29,41 +29,51 @@ renderClayScene = new ClayRenderer regl
 
 world = new World()
 
-color2vec = (color) ->
-  vec4.fromValues color.red(), color.green(), color.blue(), 1
-
-class PersonRendererProps
-  constructor: (person) ->
-    @_debug = person._debug
-
-    @_srcMainBody = person._mainBody
-    @_srcMainBodyPos = @_srcMainBody.GetPosition()
-    @_srcWalkTracker = person._walkTracker
-
+class PersonRenderer
+  constructor: ->
     @_pos = vec3.create()
+
     @model = mat4.create()
     @modelFootL = mat4.create()
     @modelFootR = mat4.create()
-    @colorTop = color2vec person._color
-    @colorBottom = color2vec person._color2
+    @colorTop = vec4.create()
+    @colorBottom = vec4.create()
 
-  update: ->
-    vec3.set @_pos, @_srcMainBodyPos.x, @_srcMainBodyPos.y, 0
+  update: (person) ->
+    mainBody = person._mainBody
+    mainBodyPos = mainBody.GetPosition()
+    walkTracker = person._walkTracker
+
+    vec3.set @_pos, mainBodyPos.x, mainBodyPos.y, 0
 
     mat4.identity @model # @todo reuse one identity source?
     mat4.translate @model, @model, @_pos
-    mat4.rotateZ @model, @model, @_srcMainBody.GetAngle()
+    mat4.rotateZ @model, @model, mainBody.GetAngle()
 
     # feet are positioned independently in world space
     mat4.identity @modelFootL # @todo reuse one identity source?
-    mat4.translate @modelFootL, @modelFootL, @_srcWalkTracker.footLMeshOffset
-    mat4.rotateZ @modelFootL, @modelFootL, @_srcMainBody.GetAngle()
+    mat4.translate @modelFootL, @modelFootL, walkTracker.footLMeshOffset
+    mat4.rotateZ @modelFootL, @modelFootL, mainBody.GetAngle()
 
     mat4.identity @modelFootR # @todo reuse one identity source?
-    mat4.translate @modelFootR, @modelFootR, @_srcWalkTracker.footRMeshOffset
-    mat4.rotateZ @modelFootR, @modelFootR, @_srcMainBody.GetAngle()
+    mat4.translate @modelFootR, @modelFootR, walkTracker.footRMeshOffset
+    mat4.rotateZ @modelFootR, @modelFootR, mainBody.GetAngle()
 
-personRendererPropsList = (new PersonRendererProps(person) for person in world._personList)
+    vec4.set @colorTop, person._color.red(), person._color.green(), person._color.blue(), 1
+    vec4.set @colorBottom, person._color2.red(), person._color2.green(), person._color2.blue(), 1
+
+  draw: regl
+    # override default person shape parameters to source from computed data attached to "this"
+    uniforms:
+      model: regl.this 'model'
+      modelTop: regl.this 'model'
+      modelFootL: regl.this 'modelFootL'
+      modelFootR: regl.this 'modelFootR'
+
+      colorTop: regl.this 'colorTop'
+      colorBottom: regl.this 'colorBottom'
+
+pr = new PersonRenderer()
 
 orthoBoxes = [].concat ([].concat (
   for r in [ -1 .. 1 ]
@@ -94,8 +104,6 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX lightTransform, lightTransform, -0.6
   mat4.rotateZ lightTransform, lightTransform, 3 * Math.PI / 4
 
-  props.update() for props in personRendererPropsList
-
   regl.clear
     color: [ 1, 1, 1, 1 ]
     depth: 1
@@ -110,7 +118,9 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     # orthoBoxShape orthoBoxes, render
 
     # @todo avoid rendering if no physics processed yet - or maybe just init the cycle tracker properly!
-    if personShape then personShape personRendererPropsList, render
+    if personShape then personShape world._personList, (ctx, props) ->
+      pr.update props
+      pr.draw render
 
   for person in world._personList
     debugTargetShape
