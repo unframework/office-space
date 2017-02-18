@@ -13,6 +13,17 @@ SLOW_FRACTION = 1
 EDGE_EXTENT = 6
 EDGE_MARGIN = 1 # to avoid immediate de-spawn when right next to the edge
 
+createCornerRouter = (flowIsOpposite) ->
+  (physicsBody) ->
+    pos = physicsBody.GetPosition()
+
+    if pos.x < 0 and pos.y < 0
+      Math.atan2(pos.y, pos.x) + (if flowIsOpposite then -Math.PI / 2 else Math.PI / 2)
+    else if pos.x > pos.y
+      if flowIsOpposite then Math.PI else 0
+    else
+      if flowIsOpposite then Math.PI / 2 else -Math.PI / 2
+
 populateOrthoBumpers = (orthoBumperList, physicsWorld) ->
   fixDef = new b2FixtureDef()
   fixDef.density = 200.0
@@ -65,8 +76,8 @@ class World
     across = 0.5 + Math.random() * 2
 
     if Math.random() > 0.5
-      new Person(@_physicsStepDuration, @_physicsWorld, -across, setback)
+      new Person(@_physicsStepDuration, @_physicsWorld, -across, setback, createCornerRouter(Math.random() > 0.5))
     else
-      new Person(@_physicsStepDuration, @_physicsWorld, setback, -across)
+      new Person(@_physicsStepDuration, @_physicsWorld, setback, -across, createCornerRouter(Math.random() > 0.5))
 
 module.exports = World

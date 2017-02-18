@@ -12,7 +12,7 @@ WalkCycleTracker = require('./WalkCycleTracker.coffee')
 FOOT_OFFSET = 0.125
 
 class Person
-  constructor: (@_physicsStepDuration, @_physicsWorld, x, y, @_debug) ->
+  constructor: (@_physicsStepDuration, @_physicsWorld, x, y, @_routerCallback) ->
     @_color = new color.HSL(Math.random(), 0.8, 0.8).rgb()
     @_color2 = @_color.hue(0.08, true).lightness(0.7)
 
@@ -29,8 +29,6 @@ class Person
     bodyDef.position.x = x
     bodyDef.position.y = y
     bodyDef.angle = (Math.random() * 2 - 1) * Math.PI
-
-    @_oppo = Math.random() > 0.5
 
     @_mainBody = @_physicsWorld.CreateBody(bodyDef)
     @_mainBody.CreateFixture(fixDef)
@@ -60,22 +58,12 @@ class Person
       # @_mainBody.ApplyImpulse new b2Vec2(0, 200), new b2Vec2(x, y)
       # @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 200, Math.sin(bodyDef.angle) * 200), new b2Vec2(x, y)
 
-  _computeTargetDirection: ->
-    pos = @_mainBody.GetPosition()
-
-    if pos.x < 0 and pos.y < 0
-      Math.atan2(pos.y, pos.x) + (if @_oppo then -Math.PI / 2 else Math.PI / 2)
-    else if pos.x > pos.y
-      if @_oppo then Math.PI else 0
-    else
-      if @_oppo then Math.PI / 2 else -Math.PI / 2
-
   onPhysicsStep: ->
     @_walkTracker.onPhysicsStep()
 
     @_leanAngle = @_leanAngle * 0.95 + 0.1 * Math.atan2 @_walkTracker.footLMeshOffset[2] - @_walkTracker.footRMeshOffset[2], FOOT_OFFSET * 2
 
-    targetAngle = @_computeTargetDirection()
+    targetAngle = @_routerCallback @_mainBody
 
     @_avoidanceTimeout -= @_physicsStepDuration
 
