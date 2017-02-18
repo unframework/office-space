@@ -30,6 +30,8 @@ class Person
     bodyDef.position.y = y
     bodyDef.angle = (Math.random() * 2 - 1) * Math.PI
 
+    @_oppo = Math.random() > 0.5
+
     @_mainBody = @_physicsWorld.CreateBody(bodyDef)
     @_mainBody.CreateFixture(fixDef)
     @_mainBody.SetLinearDamping(1.2)
@@ -37,7 +39,6 @@ class Person
 
     @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.2 + Math.random() * 0.1, 0.05 + Math.random() * 0.05)
 
-    @_walkTarget = new b2Vec2(-100 * Math.sign(x), Math.random() * 5 - 2.5)
     @_orientationAngle = bodyDef.angle
     @_leanAngle = 0
 
@@ -59,34 +60,30 @@ class Person
       # @_mainBody.ApplyImpulse new b2Vec2(0, 200), new b2Vec2(x, y)
       # @_mainBody.ApplyImpulse new b2Vec2(Math.cos(bodyDef.angle) * 200, Math.sin(bodyDef.angle) * 200), new b2Vec2(x, y)
 
+  _computeTargetDirection: ->
+    pos = @_mainBody.GetPosition()
+
+    if pos.x < 0 and pos.y < 0
+      Math.atan2(pos.y, pos.x) + (if @_oppo then -Math.PI / 2 else Math.PI / 2)
+    else if pos.x > pos.y
+      if @_oppo then Math.PI else 0
+    else
+      if @_oppo then Math.PI / 2 else -Math.PI / 2
+
   onPhysicsStep: ->
     @_walkTracker.onPhysicsStep()
 
     @_leanAngle = @_leanAngle * 0.95 + 0.1 * Math.atan2 @_walkTracker.footLMeshOffset[2] - @_walkTracker.footRMeshOffset[2], FOOT_OFFSET * 2
 
-    for i in [ 0 ... 10 ] # limit attempts
-      # update our targeted walking
-      @_tmpWalkTargetDelta.SetV @_walkTarget
-      @_tmpWalkTargetDelta.Subtract @_mainBody.GetPosition()
-
-      dist = @_tmpWalkTargetDelta.Length()
-
-      if dist < 0.1
-        @_walkTarget = new b2Vec2(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
-        continue
-
-      break
-
-    targetAngle = Math.atan2(@_tmpWalkTargetDelta.y, @_tmpWalkTargetDelta.x)
-
-    # update direction we face when far enough from target
-    if dist > 0.2
-        @_orientationAngle = targetAngle
+    targetAngle = @_computeTargetDirection()
 
     @_avoidanceTimeout -= @_physicsStepDuration
 
     if @_avoidanceTimeout <= 0
       @_avoidanceTimeout += 0.05 + Math.random() * 0.1
+
+      # update orientation sparingly
+      @_orientationAngle = targetAngle
 
       # see if we have any close by folks
       @_tmpWalkDir.Set Math.cos(targetAngle), Math.sin(targetAngle)
@@ -140,8 +137,10 @@ class Person
     vel = b2Math.Dot(@_mainBody.GetLinearVelocity(), @_tmpWalkImpulse)
     targetVel = if @_avoidanceGoLeft and @_avoidanceGoRight
       -0.2 # back up if we would possibly get stuck
+    else if @_avoidanceGoSlow
+      @_nominalSpeed / 2
     else
-      Math.min(1, dist / 0.4) * (if @_avoidanceGoSlow then @_nominalSpeed / 2 else @_nominalSpeed)
+      @_nominalSpeed
 
     diff = b2Math.Clamp(targetVel - vel, -0.3, 0.3)
 

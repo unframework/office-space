@@ -92,7 +92,7 @@ orthoBoxes = [].concat ([].concat (
 )...)...
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 10, 10, -15 + 0.2 * Math.sin(time / 8)
+  vec3.set cameraPosition, 11, 11, -15 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
   mat4.rotateX camera, camera, -Math.PI / 4
@@ -121,10 +121,3 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
       pr.draw render
-
-  for person in world._personList
-    debugTargetShape
-      camera: camera
-      color: [ person._color2.red(), person._color2.green(), person._color2.blue(), 0.4 ]
-      translate: [ person._walkTarget.x, person._walkTarget.y, 0.001 ]
-      radius: 0.2
