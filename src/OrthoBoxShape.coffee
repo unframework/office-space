@@ -37,7 +37,7 @@ module.exports = (regl) -> regl
         }
 
         vec4 clayPigment() {
-          return vec4(0.85, 0.85, 0.85, 1);
+          return vec4(0.45, 0.45, 0.45, 1);
         }
 
         #pragma glslify: export(claySetup)

@@ -205,7 +205,7 @@ module.exports = (regl) ->
     withViewScope
       camera: camera
       light: light
-      lightColor: [ 2.5, 1.4, 1 ]
+      lightColor: [ 1.5, 1.4, 0.5 ]
       ambientColor: [ 0.3, 0.4, 0.8 ]
       lightProjectionDepth: lightProjectionDepth
       shadowMap: shadowFBO
