@@ -4,6 +4,7 @@ module.exports = (regl) -> regl
       vert: '''
         precision mediump float;
 
+        uniform float z;
         uniform vec4 colorA;
         uniform vec4 colorB;
         attribute vec2 position;
@@ -15,7 +16,7 @@ module.exports = (regl) -> regl
         }
 
         vec4 clayPosition() {
-          return vec4(position, 0, 1);
+          return vec4(position, z, 1);
         }
 
         #pragma glslify: export(claySetup)
@@ -50,6 +51,7 @@ module.exports = (regl) -> regl
     ]
 
   uniforms:
+    z: regl.prop 'z'
     colorA: regl.prop 'colorA'
     colorB: regl.prop 'colorB'
 

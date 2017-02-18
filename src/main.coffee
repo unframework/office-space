@@ -27,11 +27,12 @@ lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
-world = new World([
-  [ 0, 0, 10, 10 ]
-  [ -4, -4, -3, 10 ]
-  [ -4, -4, 10, -3 ]
-])
+bumperList = [
+  [ 0, 0, 8, 8 ]
+  [ -4, -4, -3, 8 ]
+  [ -4, -4, 8, -3 ]
+]
+world = new World(bumperList)
 
 class PersonRenderer
   constructor: ->
@@ -80,20 +81,20 @@ class PersonRenderer
 
 pr = new PersonRenderer()
 
-orthoBoxes = [].concat ([].concat (
-  for r in [ -1 .. 1 ]
-    for n in [ -3 .. 3 ]
-      for [ x, y, dx, dy ] in [
-        [ n * 2 + 0, r * 6 + -1, 1, 0 ]
-        [ n * 2 + 1, r * 6 + -1, 0, 4 ]
-        [ n * 2 + -1, r * 6 + 1, 2, 0 ]
-        [ n * 2 + 0, r * 6 + 3, 1, 0 ]
-      ]
-        {
-          origin: vec3.fromValues(x - CUBEWALL_THICKNESS / 2, y - CUBEWALL_THICKNESS / 2, 0)
-          size: vec3.fromValues(dx + CUBEWALL_THICKNESS, dy + CUBEWALL_THICKNESS, CUBEWALL_HEIGHT)
-        }
-)...)...
+orthoBoxes = [
+  {
+    origin: vec3.fromValues(0, 0, 0)
+    size: vec3.fromValues(8, 8, 10)
+  }
+  {
+    origin: vec3.fromValues(-3, -3, -0.1)
+    size: vec3.fromValues(3 + 8, 3, 0.1)
+  }
+  {
+    origin: vec3.fromValues(-3, -3, -0.1)
+    size: vec3.fromValues(3, 3 + 8, 0.1)
+  }
+]
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
   vec3.set cameraPosition, 22, 22, -30 + 0.2 * Math.sin(time / 8)
@@ -115,12 +116,12 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
 
   renderClayScene camera, lightProjection, lightTransform, (render, renderNonShadowing) ->
     groundShape
+      z: -0.1
       colorA: [ 0.8, 0.8, 0.8, 1 ]
       colorB: [ 0.98, 0.98, 0.98, 1 ]
     , renderNonShadowing
 
-    # @todo restore
-    # orthoBoxShape orthoBoxes, render
+    orthoBoxShape orthoBoxes, render
 
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
