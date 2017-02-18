@@ -20,7 +20,7 @@ class Person
 
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
-    fixDef.friction = 0.4
+    fixDef.friction = 0.1
     fixDef.restitution = 0.1
     fixDef.shape = new b2CircleShape(0.25)
 
@@ -88,7 +88,7 @@ class Person
       # see if we have any close by folks
       @_tmpWalkDir.Set Math.cos(targetAngle), Math.sin(targetAngle)
       @_tmpWalkRayEnd.SetV @_tmpWalkDir
-      @_tmpWalkRayEnd.Multiply 0.8
+      @_tmpWalkRayEnd.Multiply 0.6
       @_tmpWalkRayEnd.Add @_mainBody.GetPosition()
 
       @_avoidanceGoLeft = false
@@ -130,7 +130,7 @@ class Person
       @_avoidanceTimeout += 0.1 + Math.random() * 0.3
       @_avoidanceStuckTime = 0
 
-    avoidanceAngle = if @_avoidanceGoSlow then 1.5 else 0.9
+    avoidanceAngle = if @_avoidanceGoSlow then 1.1 else 0.6
     targetAngle += (if @_avoidanceGoLeft then avoidanceAngle else 0) + (if @_avoidanceGoRight then -avoidanceAngle else 0)
 
     @_tmpWalkImpulse.Set Math.cos(targetAngle), Math.sin(targetAngle)
