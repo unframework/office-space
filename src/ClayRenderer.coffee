@@ -79,9 +79,6 @@ generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
     uniform sampler2D shadowMap;
     varying vec4 fShadowCoord;
 
-    const float lightMix = 1.0;
-    const float ambientMix = 1.0;
-
     float shadowSample(vec2 co, float z, float bias) {
       float a = texture2D(shadowMap, co).z;
       float b = fShadowCoord.z;
@@ -111,13 +108,15 @@ generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
       float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
 
       float bias = max(0.01 * (1.0 - lightCosTheta), 0.005);
-      float v = shadowSample(co, fShadowCoord.z, bias);
+      float lightShadowMask = shadowSample(co, fShadowCoord.z, bias);
 
       // ambient light component with ever so slightly varying shading for extra texture
       float ambientAmount = 0.92 + 0.08 * clamp(normal.z, -1.0, 1.0);
 
-      vec3 rgbLinear = pigment.rgb * (lightColor * lightMix * lightDiffuseAmount * v + ambientColor * ambientMix * ambientAmount);
+      // mix up the combined illumination and pigment light response components
+      vec3 rgbLinear = pigment.rgb * (lightColor * lightDiffuseAmount * lightShadowMask + ambientColor * ambientAmount);
 
+      // convert from scene linear space into compressed monitor-friendly output
       vec3 rgbCompressed = hdrFilmic(rgbLinear);
 
       gl_FragColor = vec4(rgbCompressed, 1.0);
