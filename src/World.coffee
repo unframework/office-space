@@ -21,13 +21,13 @@ class World
 
       person.onPhysicsStep() for person in @_personList
 
-      toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > RUN_EXTENT)
+      toRemove = (person for person in @_personList when Math.abs(person._mainBody.GetPosition().x) > RUN_EXTENT)
 
       for person in toRemove
         @_personList.splice @_personList.indexOf(person), 1
         person.disconnectPhysics()
 
-        @_personList.push new Person(physicsStepDuration, physicsWorld, -RUN_EXTENT, Math.random() * 5 - 2.5)
+        @_personList.push new Person(physicsStepDuration, physicsWorld, Math.sign(Math.random() - 0.5) * RUN_EXTENT, Math.random() * 5 - 2.5)
     , Math.ceil(STEP_TIME * 1000)
 
 module.exports = World

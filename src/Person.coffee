@@ -37,7 +37,7 @@ class Person
 
     @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.2 + Math.random() * 0.1)
 
-    @_walkTarget = new b2Vec2(100, Math.random() * 5 - 2.5)
+    @_walkTarget = new b2Vec2(-100 * Math.sign(x), Math.random() * 5 - 2.5)
     @_orientationAngle = bodyDef.angle
     @_leanAngle = 0
 
