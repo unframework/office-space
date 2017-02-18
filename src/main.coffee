@@ -49,6 +49,7 @@ class PersonRenderer
     mat4.identity @_model_out # @todo reuse one identity source?
     mat4.translate @_model_out, @_model_out, @_pos
     mat4.rotateZ @_model_out, @_model_out, mainBody.GetAngle()
+    mat4.rotateX @_model_out, @_model_out, person._leanAngle
 
     # feet are positioned independently in world space
     mat4.identity @_modelFootL_out # @todo reuse one identity source?

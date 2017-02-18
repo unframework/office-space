@@ -9,6 +9,8 @@ color = require('onecolor')
 
 WalkCycleTracker = require('./WalkCycleTracker.coffee')
 
+FOOT_OFFSET = 0.125
+
 class Person
   constructor: (@_physicsStepDuration, @_physicsWorld, x, y, @_debug) ->
     @_color = new color.HSL(Math.random(), 0.8, 0.8).rgb()
@@ -33,10 +35,11 @@ class Person
     @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
 
-    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, 0.125, 0.2 + Math.random() * 0.1)
+    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.2 + Math.random() * 0.1)
 
     @_walkTarget = new b2Vec2(100, Math.random() * 5 - 2.5)
     @_orientationAngle = bodyDef.angle
+    @_leanAngle = 0
 
     @_avoidanceTimeout = 0
     @_avoidanceGoLeft = false
@@ -58,6 +61,8 @@ class Person
 
   onPhysicsStep: ->
     @_walkTracker.onPhysicsStep()
+
+    @_leanAngle = @_leanAngle * 0.95 + 0.1 * Math.atan2 @_walkTracker.footLMeshOffset[2] - @_walkTracker.footRMeshOffset[2], FOOT_OFFSET * 2
 
     for i in [ 0 ... 10 ] # limit attempts
       # update our targeted walking
