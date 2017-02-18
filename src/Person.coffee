@@ -14,6 +14,8 @@ class Person
     @_color = new color.HSL(Math.random(), 0.8, 0.8).rgb()
     @_color2 = @_color.hue(0.08, true).lightness(0.7)
 
+    @_nominalSpeed = 0.4 + Math.random() * 0.4
+
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
     fixDef.friction = 0.4
@@ -31,7 +33,7 @@ class Person
     @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
 
-    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, 0.125)
+    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, 0.125, 0.2 + Math.random() * 0.1)
 
     @_walkTarget = new b2Vec2(100, Math.random() * 5 - 2.5)
     @_orientationAngle = bodyDef.angle
@@ -134,7 +136,7 @@ class Person
     targetVel = if @_avoidanceGoLeft and @_avoidanceGoRight
       -0.2 # back up if we would possibly get stuck
     else
-      Math.min(1, dist / 0.4) * (if @_avoidanceGoSlow then 0.3 else 0.7)
+      Math.min(1, dist / 0.4) * (if @_avoidanceGoSlow then @_nominalSpeed / 2 else @_nominalSpeed)
 
     diff = b2Math.Clamp(targetVel - vel, -0.3, 0.3)
 

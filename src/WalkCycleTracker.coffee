@@ -4,7 +4,7 @@ vec3 = require('gl-matrix').vec3
 # @todo in general, fasten the cycle when strides need to be longer?
 # @todo "drunk mode"? just add random variations
 class WalkCycleTracker
-  constructor: (@_physicsStepDuration, @_physicsBody, @_footOffsetDistance) ->
+  constructor: (@_physicsStepDuration, @_physicsBody, @_footOffsetDistance, @_strideDuration) ->
     @_physicsBodyPos = @_physicsBody.GetPosition()
 
     @_walkPos = vec2.fromValues(@_physicsBodyPos.x, @_physicsBodyPos.y)
@@ -35,18 +35,17 @@ class WalkCycleTracker
   onPhysicsStep: ->
     vec2.set @_walkPos, @_physicsBodyPos.x, @_physicsBodyPos.y
 
-    STRIDE_TIME = 0.25
     STRIDE_FOOT_SUPPORT_FRACTION = 0.5 # 0 .. 1, good values are between 0.5 and 1 (higher means more foot lag)
 
     @_strideTime += @_physicsStepDuration
-    strideOverflow = Math.floor @_strideTime / STRIDE_TIME
-    @_strideTime -= strideOverflow * STRIDE_TIME # should not accumulate errors easily
+    strideOverflow = Math.floor @_strideTime / @_strideDuration
+    @_strideTime -= strideOverflow * @_strideDuration # should not accumulate errors easily
 
     # flip the moving foot if finished last stride
     if strideOverflow > 0
       @_leftFootIsMoving = not @_leftFootIsMoving
 
-    footAlong = 0.5 * (1 - Math.cos(Math.PI * @_strideTime / STRIDE_TIME))
+    footAlong = 0.5 * (1 - Math.cos(Math.PI * @_strideTime / @_strideDuration))
     footAnim = (1 - footAlong) * (1 - footAlong) # non-linear foot snap
 
     [ movingFootStartPos, movingFootLiftPos, movingFootOffset ] = if @_leftFootIsMoving then [ @_walkFootLStartPos, @_walkFootLLiftPos, @footLMeshOffset ] else [ @_walkFootRStartPos, @_walkFootRLiftPos, @footRMeshOffset ]
@@ -79,8 +78,8 @@ class WalkCycleTracker
     # -> Pend = Pnom + (Pstart - Pnom) * -(strideDur - elapsedCycleTime + halfStrideDur) / (halfStrideDur + elapsedCycleTime)
     # -> Pend = lerp(Pnom, Pstart, -(strideDur - elapsedCycleTime + halfStrideDur) / (halfStrideDur + elapsedCycleTime))
     # @todo lateral foot deviation does not dampen well (keeps wobbling side-to-side)
-    remainingStrideTime = STRIDE_TIME - @_strideTime
-    vec2.lerp @_movingFootEndPos, @_movingFootCurrentPos, movingFootStartPos, -(remainingStrideTime + (1 - STRIDE_FOOT_SUPPORT_FRACTION) * STRIDE_TIME) / (STRIDE_FOOT_SUPPORT_FRACTION * STRIDE_TIME + @_strideTime)
+    remainingStrideTime = @_strideDuration - @_strideTime
+    vec2.lerp @_movingFootEndPos, @_movingFootCurrentPos, movingFootStartPos, -(remainingStrideTime + (1 - STRIDE_FOOT_SUPPORT_FRACTION) * @_strideDuration) / (STRIDE_FOOT_SUPPORT_FRACTION * @_strideDuration + @_strideTime)
 
     # animate actual foot position towards the target spot
     vec2.lerp movingFootLiftPos, movingFootStartPos, @_movingFootEndPos, 1 - footAnim
