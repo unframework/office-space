@@ -13,8 +13,8 @@ FOOT_OFFSET = 0.125
 
 class Person
   constructor: (@_physicsStepDuration, @_physicsWorld, x, y, @_routerCallback) ->
-    @_color = new color.HSL(Math.random(), 0.8, 0.8).rgb()
-    @_color2 = @_color.hue(0.08, true).lightness(0.7)
+    @_color = new color.HSL(0.9 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.7 + Math.random() * 0.2).rgb()
+    @_color2 = @_color.hue(0.08, true).saturation(-0.3, true).lightness(-0.6, true)
 
     @_nominalSpeed = 0.4 + Math.random() * 0.4
 

@@ -2,6 +2,7 @@ fs = require('fs')
 Readable = require('stream').Readable
 parseOBJ = require('parse-obj')
 
+# @todo eliminate need for texture
 TEXTURE_DATA = fs.readFileSync(__dirname + '/PersonShape.png', 'binary')
 MESH_DATA = fs.readFileSync __dirname + '/PersonShape.objdata'
 MESH_SCALE = 1
@@ -103,7 +104,7 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
           }
 
           vec4 clayPigment() {
-            return texture2D(texture, fUV) * fColor;
+            return (0.4 + 0.6 * texture2D(texture, fUV)) * fColor;
           }
 
           #pragma glslify: export(claySetup)

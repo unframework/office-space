@@ -118,8 +118,8 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   renderClayScene camera, lightProjection, lightTransform, (render, renderNonShadowing) ->
     groundShape
       z: -0.1
-      colorA: [ 0.8, 0.8, 0.8, 1 ]
-      colorB: [ 0.98, 0.98, 0.98, 1 ]
+      colorA: [ 0.6, 0.6, 0.5, 1 ]
+      colorB: [ 0.68, 0.68, 0.58, 1 ]
     , renderNonShadowing
 
     orthoBoxShape orthoBoxes, render
