@@ -27,7 +27,11 @@ lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
-world = new World()
+world = new World([
+  [ 0, 0, 10, 10 ]
+  [ -4, -4, -3, 10 ]
+  [ -4, -4, 10, -3 ]
+])
 
 class PersonRenderer
   constructor: ->
@@ -92,7 +96,7 @@ orthoBoxes = [].concat ([].concat (
 )...)...
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 11, 11, -15 + 0.2 * Math.sin(time / 8)
+  vec3.set cameraPosition, 22, 22, -30 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
   mat4.rotateX camera, camera, -Math.PI / 4
