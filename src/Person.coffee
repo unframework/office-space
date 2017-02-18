@@ -84,9 +84,7 @@ class Person
       @_avoidanceGoSlow = false
       @_physicsWorld.RayCast(
         (fixture, point, outputNormal, fraction) =>
-          # @_tmpWalkTargetDelta.SetV point
-          # @_tmpWalkTargetDelta.Subtract @_mainBody.GetPosition()
-
+          # @todo use other person's direction if available to avoid silly jams (see crowd logic in rail-pass codebase)
           along = b2Math.Dot(outputNormal, @_tmpWalkDir)
           cross = b2Math.CrossVV(outputNormal, @_tmpWalkDir)
 

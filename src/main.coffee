@@ -27,10 +27,11 @@ lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
+WALKWAY_MARGIN = 0.1
 bumperList = [
-  [ 0, 0, 8, 8 ]
-  [ -4, -4, -3, 8 ]
-  [ -4, -4, 8, -3 ]
+  [ -WALKWAY_MARGIN, -WALKWAY_MARGIN, 8, 8 ]
+  [ -4, -4, -3 + WALKWAY_MARGIN, 8 ]
+  [ -4, -4, 8, -3 + WALKWAY_MARGIN ]
 ]
 world = new World(bumperList)
 
@@ -97,7 +98,7 @@ orthoBoxes = [
 ]
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 22, 22, -30 + 0.2 * Math.sin(time / 8)
+  vec3.set cameraPosition, 11, 11, -15 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
   mat4.rotateX camera, camera, -Math.PI / 4
