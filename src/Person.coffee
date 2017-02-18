@@ -48,10 +48,10 @@ class Person
     @_avoidanceStuckTime = 0
     @_avoidanceAverageDecision = 0 # rolling average of avoidance direction change decisions
 
-    @_walkTargetDelta = new b2Vec2(0, 0) # computation helper
-    @_walkImpulse = new b2Vec2(0, 0)
-    @_walkDir = new b2Vec2(0, 0)
-    @_walkRayEnd = new b2Vec2(0, 0)
+    @_tmpWalkTargetDelta = new b2Vec2(0, 0) # computation helper
+    @_tmpWalkImpulse = new b2Vec2(0, 0)
+    @_tmpWalkDir = new b2Vec2(0, 0)
+    @_tmpWalkRayEnd = new b2Vec2(0, 0)
 
     @_debugTargetAngle = 0
 
@@ -66,10 +66,10 @@ class Person
 
     for i in [ 0 ... 10 ] # limit attempts
       # update our targeted walking
-      @_walkTargetDelta.SetV @_walkTarget
-      @_walkTargetDelta.Subtract @_mainBody.GetPosition()
+      @_tmpWalkTargetDelta.SetV @_walkTarget
+      @_tmpWalkTargetDelta.Subtract @_mainBody.GetPosition()
 
-      dist = @_walkTargetDelta.Length()
+      dist = @_tmpWalkTargetDelta.Length()
 
       if dist < 0.1
         @_walkTarget = new b2Vec2(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
@@ -77,7 +77,7 @@ class Person
 
       break
 
-    targetAngle = Math.atan2(@_walkTargetDelta.y, @_walkTargetDelta.x)
+    targetAngle = Math.atan2(@_tmpWalkTargetDelta.y, @_tmpWalkTargetDelta.x)
 
     # update direction we face when far enough from target
     if dist > 0.2
@@ -89,21 +89,21 @@ class Person
       @_avoidanceTimeout += 0.05 + Math.random() * 0.1
 
       # see if we have any close by folks
-      @_walkDir.Set Math.cos(targetAngle), Math.sin(targetAngle)
-      @_walkRayEnd.SetV @_walkDir
-      @_walkRayEnd.Multiply 0.8
-      @_walkRayEnd.Add @_mainBody.GetPosition()
+      @_tmpWalkDir.Set Math.cos(targetAngle), Math.sin(targetAngle)
+      @_tmpWalkRayEnd.SetV @_tmpWalkDir
+      @_tmpWalkRayEnd.Multiply 0.8
+      @_tmpWalkRayEnd.Add @_mainBody.GetPosition()
 
       @_avoidanceGoLeft = false
       @_avoidanceGoRight = false
       @_avoidanceGoSlow = false
       @_physicsWorld.RayCast(
         (fixture, point, outputNormal, fraction) =>
-          # @_walkTargetDelta.SetV point
-          # @_walkTargetDelta.Subtract @_mainBody.GetPosition()
+          # @_tmpWalkTargetDelta.SetV point
+          # @_tmpWalkTargetDelta.Subtract @_mainBody.GetPosition()
 
-          along = b2Math.Dot(outputNormal, @_walkDir)
-          cross = b2Math.CrossVV(outputNormal, @_walkDir)
+          along = b2Math.Dot(outputNormal, @_tmpWalkDir)
+          cross = b2Math.CrossVV(outputNormal, @_tmpWalkDir)
 
           if cross < 0
             @_avoidanceGoLeft = true
@@ -115,7 +115,7 @@ class Person
           1 # keep querying for other possible objects in the way
         ,
         @_mainBody.GetPosition(),
-        @_walkRayEnd
+        @_tmpWalkRayEnd
       )
 
     @_avoidanceAverageDecision = @_avoidanceAverageDecision * 0.8 + (if @_avoidanceGoLeft then 0.2 else 0) + (if @_avoidanceGoRight then -0.2 else 0)
@@ -136,8 +136,8 @@ class Person
     avoidanceAngle = if @_avoidanceGoSlow then 1.5 else 0.9
     targetAngle += (if @_avoidanceGoLeft then avoidanceAngle else 0) + (if @_avoidanceGoRight then -avoidanceAngle else 0)
 
-    @_walkImpulse.Set Math.cos(targetAngle), Math.sin(targetAngle)
-    vel = b2Math.Dot(@_mainBody.GetLinearVelocity(), @_walkImpulse)
+    @_tmpWalkImpulse.Set Math.cos(targetAngle), Math.sin(targetAngle)
+    vel = b2Math.Dot(@_mainBody.GetLinearVelocity(), @_tmpWalkImpulse)
     targetVel = if @_avoidanceGoLeft and @_avoidanceGoRight
       -0.2 # back up if we would possibly get stuck
     else
@@ -147,9 +147,9 @@ class Person
 
     @_debugTargetAngle = targetAngle
 
-    @_walkImpulse.Multiply @_mainBody.GetMass() * diff
+    @_tmpWalkImpulse.Multiply @_mainBody.GetMass() * diff
 
-    @_mainBody.ApplyImpulse @_walkImpulse, @_mainBody.GetPosition()
+    @_mainBody.ApplyImpulse @_tmpWalkImpulse, @_mainBody.GetPosition()
 
     # face the direction we want
     angleDiff = @_orientationAngle - @_mainBody.GetAngle()
