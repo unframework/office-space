@@ -103,15 +103,20 @@ generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
       claySetup();
 
       vec4 pigment = clayPigment();
+      vec4 normal = clayNormal();
 
+      // diffuse light component masked by the computed shadows
       vec2 co = fShadowCoord.xy * 0.5 + 0.5; // go from range [-1, +1] to range [0, +1]
-      float lightCosTheta = -lightProjectionDepth * (light * clayNormal()).z;
+      float lightCosTheta = -lightProjectionDepth * (light * normal).z;
       float lightDiffuseAmount =  clamp(lightCosTheta, 0.0, 1.0);
 
       float bias = max(0.01 * (1.0 - lightCosTheta), 0.005);
       float v = shadowSample(co, fShadowCoord.z, bias);
 
-      vec3 rgbLinear = pigment.rgb * (lightColor * lightMix * lightDiffuseAmount * v + ambientColor * ambientMix);
+      // ambient light component with ever so slightly varying shading for extra texture
+      float ambientAmount = 0.92 + 0.08 * clamp(normal.z, -1.0, 1.0);
+
+      vec3 rgbLinear = pigment.rgb * (lightColor * lightMix * lightDiffuseAmount * v + ambientColor * ambientMix * ambientAmount);
 
       vec3 rgbCompressed = hdrFilmic(rgbLinear);
 
