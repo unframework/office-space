@@ -5,6 +5,10 @@ glslifyBundle = require('glslify-bundle')
 # references:
 # - http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-16-shadow-mapping/ (google search "opengl shadows")
 # - https://github.com/regl-project/regl/blob/gh-pages/example/shadow_map.js
+# - http://ogldev.atspace.co.uk/www/tutorial18/tutorial18.html
+# - http://marcinignac.com/blog/pragmatic-pbr-hdr/
+# - http://filmicworlds.com/blog/filmic-tonemapping-operators/
+# - http://www.slideshare.net/ozlael/hable-john-uncharted2-hdr-lighting
 
 CACHE_KEY_PREFIX = '__clay_cache' + Math.round(Math.random() * 1000000)
 CACHE_DEPTH_VERT_KEY = CACHE_KEY_PREFIX + '_dv'
@@ -69,15 +73,29 @@ generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
 
     // standard material code
     uniform mat4 light;
+    uniform vec3 lightColor;
+    uniform vec3 ambientColor;
     uniform float lightProjectionDepth;
     uniform sampler2D shadowMap;
     varying vec4 fShadowCoord;
+
+    const float lightMix = 1.0;
+    const float ambientMix = 1.0;
 
     float shadowSample(vec2 co, float z, float bias) {
       float a = texture2D(shadowMap, co).z;
       float b = fShadowCoord.z;
 
       return step(b - bias, a);
+    }
+
+    vec3 hdrReinhard(vec3 color) {
+      return color / (color + vec3(1.0));
+    }
+
+    vec3 hdrFilmic(vec3 color) {
+      vec3 x = max(vec3(0), color - 0.004);
+      return (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
     }
 
     // invoke standard entry points
@@ -93,7 +111,11 @@ generateViewFragShader = cachingGenerator CACHE_VIEW_FRAG_KEY, (definition) ->
       float bias = max(0.01 * (1.0 - lightCosTheta), 0.005);
       float v = shadowSample(co, fShadowCoord.z, bias);
 
-      gl_FragColor = pigment * vec4(vec3(0.8 + 0.2 * lightDiffuseAmount * v), 1.0);
+      vec3 rgbLinear = pigment.rgb * (lightColor * lightMix * lightDiffuseAmount * v + ambientColor * ambientMix);
+
+      vec3 rgbCompressed = hdrFilmic(rgbLinear);
+
+      gl_FragColor = vec4(rgbCompressed, 1.0);
     }
   '''
 
@@ -151,6 +173,8 @@ module.exports = (regl) ->
     uniforms:
       camera: regl.prop 'camera'
       light: regl.prop 'light'
+      lightColor: regl.prop 'lightColor'
+      ambientColor: regl.prop 'ambientColor'
       lightProjectionDepth: regl.prop 'lightProjectionDepth'
       shadowMap: regl.prop 'shadowMap'
 
@@ -176,6 +200,8 @@ module.exports = (regl) ->
     withViewScope
       camera: camera
       light: light
+      lightColor: [ 2.2, 1.4, 1 ]
+      ambientColor: [ 0.3, 0.4, 0.8 ]
       lightProjectionDepth: lightProjectionDepth
       shadowMap: shadowFBO
     , ->
