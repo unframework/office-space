@@ -4,7 +4,7 @@ vec3 = require('gl-matrix').vec3
 # @todo in general, fasten the cycle when strides need to be longer?
 # @todo "drunk mode"? just add random variations
 class WalkCycleTracker
-  constructor: (@_physicsStepDuration, @_physicsBody, @_footOffsetDistance, @_strideDuration) ->
+  constructor: (@_physicsStepDuration, @_physicsBody, @_footOffsetDistance, @_strideDuration, @_footLift) ->
     @_physicsBodyPos = @_physicsBody.GetPosition()
 
     @_walkPos = vec2.fromValues(@_physicsBodyPos.x, @_physicsBodyPos.y)
@@ -45,7 +45,8 @@ class WalkCycleTracker
     if strideOverflow > 0
       @_leftFootIsMoving = not @_leftFootIsMoving
 
-    footAlong = 0.5 * (1 - Math.cos(Math.PI * @_strideTime / @_strideDuration))
+    phase = @_strideTime / @_strideDuration
+    footAlong = 0.5 * (1 - Math.cos(Math.PI * phase))
     footAnim = (1 - footAlong) * (1 - footAlong) # non-linear foot snap
 
     [ movingFootStartPos, movingFootLiftPos, movingFootOffset ] = if @_leftFootIsMoving then [ @_walkFootLStartPos, @_walkFootLLiftPos, @footLMeshOffset ] else [ @_walkFootRStartPos, @_walkFootRLiftPos, @footRMeshOffset ]
@@ -84,8 +85,7 @@ class WalkCycleTracker
     # animate actual foot position towards the target spot
     vec2.lerp movingFootLiftPos, movingFootStartPos, @_movingFootEndPos, 1 - footAnim
 
-    maxLift = Math.min 0.1, (0.3 * vec2.distance movingFootLiftPos, movingFootStartPos)
-    vec3.set movingFootOffset, movingFootLiftPos[0] - @_footLocalOffset[0], movingFootLiftPos[1] - @_footLocalOffset[1], maxLift * footAnim
+    vec3.set movingFootOffset, movingFootLiftPos[0] - @_footLocalOffset[0], movingFootLiftPos[1] - @_footLocalOffset[1], phase * footAnim * 2 * @_footLift
 
     # preserve stuck foot reference position and reset displayed foot to ground level
     vec2.copy stuckFootStartPos, stuckFootLiftPos
