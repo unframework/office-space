@@ -34,6 +34,7 @@ class Person
     @_mainBody.CreateFixture(fixDef)
     @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
+    @_mainBody.__person = this
 
     @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.3 - @_nominalSpeed * 0.1 - Math.random() * 0.1, 0.05 + Math.random() * 0.05)
 
@@ -44,8 +45,6 @@ class Person
     @_avoidanceGoLeft = false
     @_avoidanceGoRight = false
     @_avoidanceGoSlow = false
-    @_avoidanceStuckTime = 0
-    @_avoidanceAverageDecision = 0 # rolling average of avoidance direction change decisions
 
     @_tmpWalkTargetDelta = new b2Vec2(0, 0) # computation helper
     @_tmpWalkImpulse = new b2Vec2(0, 0)
@@ -70,7 +69,6 @@ class Person
     if @_avoidanceTimeout <= 0
       @_avoidanceTimeout += 0.05 + Math.random() * 0.1
 
-      # update orientation sparingly
       @_orientationAngle = targetAngle
 
       # see if we have any close by folks
@@ -84,16 +82,23 @@ class Person
       @_avoidanceGoSlow = false
       @_physicsWorld.RayCast(
         (fixture, point, outputNormal, fraction) =>
-          # @todo use other person's direction if available to avoid silly jams (see crowd logic in rail-pass codebase)
-          along = b2Math.Dot(outputNormal, @_tmpWalkDir)
-          cross = b2Math.CrossVV(outputNormal, @_tmpWalkDir)
+          person = fixture.GetBody().__person
 
-          if cross < 0
-            @_avoidanceGoLeft = true
-          if cross > 0
-            @_avoidanceGoRight = true
-          if along < -0.8
-            @_avoidanceGoSlow = true
+          if person
+            angleDiff = person._mainBody.GetAngle() - @_mainBody.GetAngle()
+            if Math.cos(angleDiff) < 0.2
+              @_avoidanceGoSlow = true
+
+            @_tmpWalkTargetDelta.SetV person._mainBody.GetPosition()
+            @_tmpWalkTargetDelta.Subtract @_mainBody.GetPosition()
+
+            cross = b2Math.CrossVV(@_tmpWalkTargetDelta, @_tmpWalkDir)
+
+            # subtle bias to favour moving to the right, to break stalemates
+            if cross > 0.05
+              @_avoidanceGoLeft = true
+            else
+              @_avoidanceGoRight = true
 
           1 # keep querying for other possible objects in the way
         ,
@@ -101,28 +106,13 @@ class Person
         @_tmpWalkRayEnd
       )
 
-    @_avoidanceAverageDecision = @_avoidanceAverageDecision * 0.8 + (if @_avoidanceGoLeft then 0.2 else 0) + (if @_avoidanceGoRight then -0.2 else 0)
-
-    if @_avoidanceGoSlow and Math.abs(@_avoidanceAverageDecision) < 0.8
-      @_avoidanceStuckTime += @_physicsStepDuration
-    else
-      @_avoidanceStuckTime = 0
-
-    if @_avoidanceStuckTime > 0.8
-      # back up for a while
-      @_avoidanceGoLeft = true
-      @_avoidanceGoRight = true
-      @_avoidanceGoSlow = false
-      @_avoidanceTimeout += 0.1 + Math.random() * 0.3
-      @_avoidanceStuckTime = 0
-
-    avoidanceAngle = if @_avoidanceGoSlow then 1.1 else 0.6
+    avoidanceAngle = if @_avoidanceGoSlow then 1.1 else 0.4
     targetAngle += (if @_avoidanceGoLeft then avoidanceAngle else 0) + (if @_avoidanceGoRight then -avoidanceAngle else 0)
 
     @_tmpWalkImpulse.Set Math.cos(targetAngle), Math.sin(targetAngle)
     vel = b2Math.Dot(@_mainBody.GetLinearVelocity(), @_tmpWalkImpulse)
     targetVel = if @_avoidanceGoLeft and @_avoidanceGoRight
-      -0.2 # back up if we would possibly get stuck
+      -0.2 * @_nominalSpeed # back up if we would possibly get stuck
     else if @_avoidanceGoSlow
       @_nominalSpeed / 2
     else
