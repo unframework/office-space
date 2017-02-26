@@ -2,8 +2,6 @@ fs = require('fs')
 Readable = require('stream').Readable
 parseOBJ = require('parse-obj')
 
-# @todo eliminate need for texture
-TEXTURE_DATA = fs.readFileSync(__dirname + '/PersonShape.png', 'binary')
 MESH_DATA = fs.readFileSync __dirname + '/PersonShape.objdata'
 MESH_SCALE = 1
 MESH_HEIGHT = 1.5
@@ -14,13 +12,7 @@ createReadableFromData = (data) ->
 
   fileStream
 
-textureLoad = new Promise (resolve) ->
-  loader = new Image()
-  loader.crossOrigin = "anonymous" # prevent "tainted canvas" warning when blitting this
-  loader.onload = -> resolve loader
-  loader.src = 'data:application/octet-stream;base64,' + btoa(TEXTURE_DATA) # kick off loading as the last thing
-
-module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -> parseOBJ createReadableFromData(MESH_DATA), (err, mesh) ->
+module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromData(MESH_DATA), (err, mesh) ->
   resolve regl
     context:
       modelTop: (context, props) ->
@@ -104,7 +96,10 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
           }
 
           vec4 clayPigment() {
-            return (0.4 + 0.6 * texture2D(texture, fUV)) * fColor;
+            float eye1 = step(0.2, fUV.x) * step(fUV.x, 0.32) * step(0.4, fUV.y) * step(fUV.y, 0.48);
+            float eye2 = step(0.68, fUV.x) * step(fUV.x, 0.8) * step(0.4, fUV.y) * step(fUV.y, 0.48);
+            float val = eye1 + eye2;
+            return (0.4 + 0.6 * vec4(vec3(1.0 - val), 1)) * fColor;
           }
 
           #pragma glslify: export(claySetup)
@@ -182,11 +177,5 @@ module.exports = (regl) -> textureLoad.then (texture) -> new Promise (resolve) -
 
       colorTop: regl.prop 'colorTop'
       colorBottom: regl.prop 'colorBottom'
-
-      texture: regl.texture
-        data: texture
-        flipY: true
-        wrapS: 'repeat'
-        wrapT: 'repeat'
 
     count: mesh.facePositions.length * 3
