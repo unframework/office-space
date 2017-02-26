@@ -44,6 +44,9 @@ class Person
     @_blinkTimerEnd = 1
     @_blinkTimer = @_blinkTimerEnd
 
+    @_gazeTimer = 0
+    @_gazeOffsetX = 0
+
     @_avoidanceTimeout = 0
     @_avoidanceGoLeft = false
     @_avoidanceGoRight = false
@@ -72,6 +75,12 @@ class Person
     if @_blinkTimer >= @_blinkTimerEnd
       @_blinkTimer = 0
       @_blinkTimerEnd = 0.5 + Math.random() * 2.5
+
+    @_gazeTimer -= @_physicsStepDuration
+
+    if @_gazeTimer <= 0
+      @_gazeTimer = 0.25 + Math.random() * 2.0
+      @_gazeOffsetX = Math.random() * 2 - 1
 
     @_avoidanceTimeout -= @_physicsStepDuration
 

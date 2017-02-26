@@ -44,6 +44,8 @@ class PersonRenderer
     @_modelFootR_out = mat4.create()
     @_colorTop_out = vec4.create()
     @_colorBottom_out = vec4.create()
+    @_eyesOpenRatio_out = 0
+    @_gazeOffsetX_out = 0
 
   update: (person) ->
     mainBody = person._mainBody
@@ -51,6 +53,7 @@ class PersonRenderer
     walkTracker = person._walkTracker
 
     @_eyesOpenRatio_out = Math.min(1, person._blinkTimer / 0.18)
+    @_gazeOffsetX_out = person._gazeOffsetX
 
     vec3.set @_pos, mainBodyPos.x, mainBodyPos.y, 0
 
@@ -80,6 +83,7 @@ class PersonRenderer
       modelFootR: regl.this '_modelFootR_out'
 
       eyesOpenRatio: regl.this '_eyesOpenRatio_out'
+      gazeOffsetX: regl.this '_gazeOffsetX_out'
       colorTop: regl.this '_colorTop_out'
       colorBottom: regl.this '_colorBottom_out'
 
