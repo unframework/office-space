@@ -32,6 +32,9 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
           const float feetBlendStart = 0.3;
           const float feetBlendEnd = 0.05;
 
+          const float colorBlendStart = 0.5;
+          const float colorBlendEnd = 0.7;
+
           uniform mat4 model;
           uniform mat4 modelFootL;
           uniform mat4 modelFootR;
@@ -68,7 +71,7 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
 
           void claySetup() {
             fNormal = interp(vec4(normal, 0)); // normal in world space without translation
-            fColor = mix(colorBottom, colorTop, position.z / meshHeight);
+            fColor = mix(colorBottom, colorTop, clamp((position.z / meshHeight - colorBlendStart) / (colorBlendEnd - colorBlendStart), 0.0, 1.0));
             fUV = uv;
           }
 
