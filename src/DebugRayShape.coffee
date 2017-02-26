@@ -62,12 +62,11 @@ DebugRayShape = (regl, isXray) -> regl
   attributes:
     position: regl.buffer [
       [0, -1]
-      [1, -1]
-      [1,  1]
+      [1, 0]
       [0, 1]
     ]
 
   primitive: 'triangle fan'
-  count: 4
+  count: 3
 
 module.exports = DebugRayShape
