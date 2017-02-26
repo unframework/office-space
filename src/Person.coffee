@@ -74,7 +74,7 @@ class Person
       # see if we have any close by folks
       @_tmpWalkDir.Set Math.cos(targetAngle), Math.sin(targetAngle)
       @_tmpWalkRayEnd.SetV @_tmpWalkDir
-      @_tmpWalkRayEnd.Multiply 0.6
+      @_tmpWalkRayEnd.Multiply 0.9
       @_tmpWalkRayEnd.Add @_mainBody.GetPosition()
 
       @_avoidanceGoLeft = false
@@ -86,7 +86,8 @@ class Person
 
           if person
             angleDiff = person._mainBody.GetAngle() - @_mainBody.GetAngle()
-            if Math.cos(angleDiff) < 0.2
+            angleCross = Math.cos(angleDiff)
+            if angleCross < 0.2
               @_avoidanceGoSlow = true
 
             @_tmpWalkTargetDelta.SetV person._mainBody.GetPosition()
@@ -94,8 +95,9 @@ class Person
 
             cross = b2Math.CrossVV(@_tmpWalkTargetDelta, @_tmpWalkDir)
 
-            # subtle bias to favour moving to the right, to break stalemates
-            if cross > 0.05
+            # subtle bias to favour moving to the right if facing each other, or
+            # left if following the other, to break stalemates
+            if cross > -angleCross * 0.05
               @_avoidanceGoLeft = true
             else
               @_avoidanceGoRight = true
