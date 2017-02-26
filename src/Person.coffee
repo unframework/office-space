@@ -16,7 +16,7 @@ class Person
     @_color = new color.HSL(0.9 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.7 + Math.random() * 0.2).rgb()
     @_color2 = @_color.hue(0.08, true).saturation(-0.3, true).lightness(-0.6, true)
 
-    @_nominalSpeed = 0.4 + Math.random() * 0.4
+    @_nominalSpeed = 0.2 + Math.random() * 0.6
 
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
@@ -35,7 +35,7 @@ class Person
     @_mainBody.SetLinearDamping(1.2)
     @_mainBody.SetAngularDamping(1.8)
 
-    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.2 + Math.random() * 0.1, 0.05 + Math.random() * 0.05)
+    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.3 - @_nominalSpeed * 0.1 - Math.random() * 0.1, 0.05 + Math.random() * 0.05)
 
     @_orientationAngle = bodyDef.angle
     @_leanAngle = 0
