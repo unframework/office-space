@@ -41,6 +41,9 @@ class Person
     @_orientationAngle = bodyDef.angle
     @_leanAngle = 0
 
+    @_blinkTimerEnd = 1
+    @_blinkTimer = @_blinkTimerEnd
+
     @_avoidanceTimeout = 0
     @_avoidanceGoLeft = false
     @_avoidanceGoRight = false
@@ -63,6 +66,12 @@ class Person
     @_leanAngle = @_leanAngle * 0.95 + 0.1 * Math.atan2 @_walkTracker.footLMeshOffset[2] - @_walkTracker.footRMeshOffset[2], FOOT_OFFSET * 2
 
     targetAngle = @_routerCallback @_mainBody
+
+    @_blinkTimer += @_physicsStepDuration
+
+    if @_blinkTimer >= @_blinkTimerEnd
+      @_blinkTimer = 0
+      @_blinkTimerEnd = 0.5 + Math.random() * 2.5
 
     @_avoidanceTimeout -= @_physicsStepDuration
 

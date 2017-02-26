@@ -82,6 +82,9 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
         frag: '''
           precision mediump float;
 
+          const float eyeBottom = 0.4;
+
+          uniform float eyesOpenRatio;
           varying vec4 fNormal;
           varying vec4 fColor;
           varying vec2 fUV;
@@ -95,8 +98,10 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
           }
 
           vec4 clayPigment() {
-            float eye1 = step(0.2, fUV.x) * step(fUV.x, 0.32) * step(0.4, fUV.y) * step(fUV.y, 0.48);
-            float eye2 = step(0.68, fUV.x) * step(fUV.x, 0.8) * step(0.4, fUV.y) * step(fUV.y, 0.48);
+            float eyeTop = eyeBottom + eyesOpenRatio * 0.08;
+
+            float eye1 = step(0.2, fUV.x) * step(fUV.x, 0.32) * step(eyeBottom, fUV.y) * step(fUV.y, eyeTop);
+            float eye2 = step(0.68, fUV.x) * step(fUV.x, 0.8) * step(eyeBottom, fUV.y) * step(fUV.y, eyeTop);
             float val = eye1 + eye2;
             return (0.4 + 0.6 * vec4(vec3(1.0 - val), 1)) * fColor;
           }
@@ -174,6 +179,7 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
       modelFootL: regl.context 'modelFootL'
       modelFootR: regl.context 'modelFootR'
 
+      eyesOpenRatio: regl.prop 'eyesOpenRatio'
       colorTop: regl.prop 'colorTop'
       colorBottom: regl.prop 'colorBottom'
 

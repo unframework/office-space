@@ -50,6 +50,8 @@ class PersonRenderer
     mainBodyPos = mainBody.GetPosition()
     walkTracker = person._walkTracker
 
+    @_eyesOpenRatio_out = Math.min(1, person._blinkTimer / 0.18)
+
     vec3.set @_pos, mainBodyPos.x, mainBodyPos.y, 0
 
     mat4.identity @_model_out # @todo reuse one identity source?
@@ -77,6 +79,7 @@ class PersonRenderer
       modelFootL: regl.this '_modelFootL_out'
       modelFootR: regl.this '_modelFootR_out'
 
+      eyesOpenRatio: regl.this '_eyesOpenRatio_out'
       colorTop: regl.this '_colorTop_out'
       colorBottom: regl.this '_colorBottom_out'
 
