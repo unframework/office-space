@@ -127,12 +127,3 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
       pr.draw render
-
-  for person in world._personList
-    debugRayXRayShape
-      camera: camera
-      color: [ 0.2, 0.2, 0.2, if person._avoidanceGoSlow then 0.4 else 0.8 ]
-      translate: [ person._mainBody.GetPosition().x, person._mainBody.GetPosition().y, 0.001 ]
-      radius: 0.03
-      length: (if person._avoidanceGoSlow then 0.4 else 0.8)
-      direction: person._debugTargetAngle
