@@ -82,7 +82,6 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
         frag: '''
           precision mediump float;
 
-          uniform sampler2D texture;
           varying vec4 fNormal;
           varying vec4 fColor;
           varying vec2 fUV;
