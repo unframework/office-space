@@ -33,7 +33,7 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
           const float feetBlendEnd = 0.05;
 
           const float colorBlendStart = 0.5;
-          const float colorBlendEnd = 0.7;
+          const float colorBlendEnd = 0.9;
 
           uniform mat4 model;
           uniform mat4 modelFootL;
