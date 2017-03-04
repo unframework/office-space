@@ -20,6 +20,7 @@
     "brfs": "^1.4.3",
     "browserify": "^14.0.0",
     "coffeeify": "^2.1.0",
+    "csg": "^1.0.1",
     "gl-matrix": "^2.3.2",
     "glsl-dither": "^1.0.1",
     "glslify": "^6.0.1",
