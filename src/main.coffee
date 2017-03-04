@@ -12,6 +12,7 @@ require('./PersonShape.coffee')(regl).then (v) -> personShape = v
 
 groundShape = require('./GroundShape.coffee')(regl)
 orthoBoxShape = require('./OrthoBoxShape.coffee')(regl)
+csgShape = require('./CSGShape.coffee')(regl)
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
 debugRayXRayShape = require('./DebugRayShape.coffee')(regl, true)
@@ -130,6 +131,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     , renderNonShadowing
 
     orthoBoxShape orthoBoxes, render
+    csgShape render
 
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
