@@ -29,7 +29,7 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
           const float meshHeight = ''' + MESH_HEIGHT + ''';
           const float topBlendStart = 0.6;
           const float topBlendEnd = 0.8;
-          const float feetBlendStart = 0.5;
+          const float feetBlendStart = 0.35;
           const float feetBlendEnd = 0.05;
 
           const float colorBlendStart = 0.5;

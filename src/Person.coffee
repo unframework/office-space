@@ -9,14 +9,15 @@ color = require('onecolor')
 
 WalkCycleTracker = require('./WalkCycleTracker.coffee')
 
-FOOT_OFFSET = 0.1
+FOOT_OFFSET = 0.08
 
+# @todo head-bob and better phase of lean-angle
 class Person
   constructor: (@_physicsStepDuration, @_physicsWorld, x, y, @_routerCallback) ->
     @_color = new color.HSL(0.9 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.2 + Math.random() * 0.6).rgb()
     @_color2 = @_color.hue(0.08, true).saturation(-0.4, true).lightness(0.1 + Math.random() * 0.1)
 
-    @_nominalSpeed = 0.2 + Math.random() * 0.3
+    @_nominalSpeed = 0.3 + Math.random() * 0.3
 
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
@@ -36,7 +37,7 @@ class Person
     @_mainBody.SetAngularDamping(1.8)
     @_mainBody.__person = this
 
-    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.3 - @_nominalSpeed * 0.1 - Math.random() * 0.1, 0.05 + Math.random() * 0.05)
+    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.6 - @_nominalSpeed * 0.15 - Math.random() * 0.1, 0.05 + Math.random() * 0.05)
 
     @_orientationAngle = bodyDef.angle
     @_leanAngle = 0
@@ -66,7 +67,7 @@ class Person
   onPhysicsStep: ->
     @_walkTracker.onPhysicsStep()
 
-    @_leanAngle = @_leanAngle * 0.95 + 0.05 * Math.atan2 @_walkTracker.footLMeshOffset[2] - @_walkTracker.footRMeshOffset[2], FOOT_OFFSET * 2
+    @_leanAngle = @_leanAngle * 0.98 + 0.02 * Math.atan2 @_walkTracker.footLMeshOffset[2] - @_walkTracker.footRMeshOffset[2], FOOT_OFFSET * 2
 
     targetAngle = @_routerCallback @_mainBody
 
