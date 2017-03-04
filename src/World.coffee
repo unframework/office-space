@@ -55,7 +55,7 @@ class World
 
     populateOrthoBumpers orthoBumperList, @_physicsWorld
 
-    @_personList = for i in [ 0 ... 50 ]
+    @_personList = for i in [ 0 ... 80 ]
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)
 
     setInterval =>

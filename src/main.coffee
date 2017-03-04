@@ -11,7 +11,7 @@ personShape = null
 require('./PersonShape.coffee')(regl).then (v) -> personShape = v
 
 groundShape = require('./GroundShape.coffee')(regl)
-orthoBoxShape = require('./OrthoBoxShape.coffee')(regl)
+csgShape = require('./CSGShape.coffee')(regl)
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
 debugRayXRayShape = require('./DebugRayShape.coffee')(regl, true)
@@ -89,23 +89,8 @@ class PersonRenderer
 
 pr = new PersonRenderer()
 
-orthoBoxes = [
-  {
-    origin: vec3.fromValues(0, 0, 0)
-    size: vec3.fromValues(8, 8, 10)
-  }
-  {
-    origin: vec3.fromValues(-3, -3, -0.1)
-    size: vec3.fromValues(3 + 8, 3, 0.1)
-  }
-  {
-    origin: vec3.fromValues(-3, -3, -0.1)
-    size: vec3.fromValues(3, 3 + 8, 0.1)
-  }
-]
-
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 11, 11, -15 + 0.2 * Math.sin(time / 8)
+  vec3.set cameraPosition, 21, 21, -31 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
   mat4.rotateX camera, camera, -Math.PI / 4
@@ -129,7 +114,7 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       colorB: [ 0.29, 0.29, 0.28, 1 ]
     , renderNonShadowing
 
-    orthoBoxShape orthoBoxes, render
+    csgShape render
 
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
