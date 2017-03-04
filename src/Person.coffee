@@ -22,7 +22,7 @@ class Person
     fixDef.density = 200.0
     fixDef.friction = 0.1
     fixDef.restitution = 0.1
-    fixDef.shape = new b2CircleShape(0.15)
+    fixDef.shape = new b2CircleShape(0.125)
 
     bodyDef = new b2BodyDef()
     bodyDef.type = b2Body.b2_dynamicBody
