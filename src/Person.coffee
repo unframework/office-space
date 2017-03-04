@@ -9,20 +9,20 @@ color = require('onecolor')
 
 WalkCycleTracker = require('./WalkCycleTracker.coffee')
 
-FOOT_OFFSET = 0.125
+FOOT_OFFSET = 0.1
 
 class Person
   constructor: (@_physicsStepDuration, @_physicsWorld, x, y, @_routerCallback) ->
     @_color = new color.HSL(0.9 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.2 + Math.random() * 0.6).rgb()
     @_color2 = @_color.hue(0.08, true).saturation(-0.4, true).lightness(0.1 + Math.random() * 0.1)
 
-    @_nominalSpeed = 0.2 + Math.random() * 0.6
+    @_nominalSpeed = 0.2 + Math.random() * 0.3
 
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
     fixDef.friction = 0.1
     fixDef.restitution = 0.1
-    fixDef.shape = new b2CircleShape(0.25)
+    fixDef.shape = new b2CircleShape(0.125)
 
     bodyDef = new b2BodyDef()
     bodyDef.type = b2Body.b2_dynamicBody
@@ -66,7 +66,7 @@ class Person
   onPhysicsStep: ->
     @_walkTracker.onPhysicsStep()
 
-    @_leanAngle = @_leanAngle * 0.95 + 0.1 * Math.atan2 @_walkTracker.footLMeshOffset[2] - @_walkTracker.footRMeshOffset[2], FOOT_OFFSET * 2
+    @_leanAngle = @_leanAngle * 0.95 + 0.05 * Math.atan2 @_walkTracker.footLMeshOffset[2] - @_walkTracker.footRMeshOffset[2], FOOT_OFFSET * 2
 
     targetAngle = @_routerCallback @_mainBody
 
@@ -92,7 +92,7 @@ class Person
       # see if we have any close by folks
       @_tmpWalkDir.Set Math.cos(targetAngle), Math.sin(targetAngle)
       @_tmpWalkRayEnd.SetV @_tmpWalkDir
-      @_tmpWalkRayEnd.Multiply 0.9
+      @_tmpWalkRayEnd.Multiply 0.4
       @_tmpWalkRayEnd.Add @_mainBody.GetPosition()
 
       @_avoidanceGoLeft = false

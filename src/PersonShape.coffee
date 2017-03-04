@@ -27,13 +27,13 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
           precision mediump float;
 
           const float meshHeight = ''' + MESH_HEIGHT + ''';
-          const float topBlendStart = 0.5;
-          const float topBlendEnd = 0.6;
-          const float feetBlendStart = 0.3;
+          const float topBlendStart = 0.6;
+          const float topBlendEnd = 0.8;
+          const float feetBlendStart = 0.5;
           const float feetBlendEnd = 0.05;
 
           const float colorBlendStart = 0.5;
-          const float colorBlendEnd = 0.7;
+          const float colorBlendEnd = 0.9;
 
           uniform mat4 model;
           uniform mat4 modelFootL;
