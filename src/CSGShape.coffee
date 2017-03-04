@@ -1,11 +1,11 @@
 CSG = require('csg')
 
 cube = CSG.cube(
-  center: [ 0, 0, 1 ]
-  radius: [ 1, 1, 1 ]
-).subtract CSG.cube(
-  center: [ 0, 0, 2 ]
-  radius: [ 0.75, 0.75, 0.75 ]
+  center: [ 4, 4, 5 ]
+  radius: [ 4, 4, 5 ]
+).union CSG.cube(
+  center: [ 2.5, 2.5, -0.1 ]
+  radius: [ 5.5, 5.5, 0.1 ]
 )
 polygonList = cube.toPolygons()
 
@@ -45,7 +45,7 @@ module.exports = (regl) -> regl
         }
 
         vec4 clayPigment() {
-          return vec4(0.25, 0.25, 0.25, 1);
+          return vec4(0.45, 0.45, 0.45, 1);
         }
 
         #pragma glslify: export(claySetup)
