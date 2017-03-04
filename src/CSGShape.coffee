@@ -1,13 +1,23 @@
+color = require('onecolor')
 CSG = require('csg')
 
-cube = CSG.cube(
-  center: [ 4, 4, 5 ]
-  radius: [ 4, 4, 5 ]
-).union CSG.cube(
+ground = CSG.cube(
   center: [ 2.5, 2.5, -0.1 ]
   radius: [ 5.5, 5.5, 0.1 ]
 )
-polygonList = cube.toPolygons()
+
+building = CSG.cube(
+  center: [ 4, 4, 5 ]
+  radius: [ 4, 4, 5 ]
+)
+
+buildingColor = new color.HSL(0.3 + Math.random() * 0.4, 0.6 + Math.random() * 0.2, 0.05 + Math.random() * 0.1).rgb()
+for poly in building.toPolygons()
+  poly.shared = { color: buildingColor }
+
+polygonList = (
+  building.union ground
+).toPolygons()
 
 module.exports = (regl) -> regl
   context:
@@ -17,11 +27,14 @@ module.exports = (regl) -> regl
 
         attribute vec3 position;
         attribute vec3 normal;
+        attribute vec3 color;
 
         varying vec4 fNormal;
+        varying vec4 fColor;
 
         void claySetup() {
           fNormal = vec4(normal, 0);
+          fColor = vec4(color, 1);
         }
 
         vec4 clayPosition() {
@@ -35,6 +48,7 @@ module.exports = (regl) -> regl
         precision mediump float;
 
         varying mediump vec4 fNormal;
+        varying mediump vec4 fColor;
 
         void claySetup() {
           // nothing to prepare
@@ -45,7 +59,7 @@ module.exports = (regl) -> regl
         }
 
         vec4 clayPigment() {
-          return vec4(0.45, 0.45, 0.45, 1);
+          return fColor;
         }
 
         #pragma glslify: export(claySetup)
@@ -75,6 +89,16 @@ module.exports = (regl) -> regl
             [ vert1.normal.x, vert1.normal.y, vert1.normal.z ]
             [ vert.normal.x, vert.normal.y, vert.normal.z ]
           ]
+    )
+    color: regl.buffer (
+      for poly in polygonList
+        polyColor = poly.shared and poly.shared.color or null
+        polyColorValues = if polyColor
+          [ polyColor.red(), polyColor.green(), polyColor.blue() ]
+        else
+          [ 0.5, 0.5, 0.5 ]
+
+        (polyColorValues for i in [ 0 ... (poly.vertices.length - 2) * 3 ])
     )
 
   cull: enable: true
