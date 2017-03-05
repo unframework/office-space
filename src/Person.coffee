@@ -37,7 +37,7 @@ class Person
     @_mainBody.SetAngularDamping(1.8)
     @_mainBody.__person = this
 
-    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.6 - @_nominalSpeed * 0.15 - Math.random() * 0.1, 0.05 + Math.random() * 0.05)
+    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.5 - @_nominalSpeed * 0.15 - Math.random() * 0.1, 0.05 + Math.random() * 0.05)
 
     @_orientationAngle = bodyDef.angle
     @_leanAngle = 0

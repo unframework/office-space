@@ -35,7 +35,7 @@ class WalkCycleTracker
   onPhysicsStep: ->
     vec2.set @_walkPos, @_physicsBodyPos.x, @_physicsBodyPos.y
 
-    STRIDE_FOOT_SUPPORT_FRACTION = 0.5 # 0 .. 1, good values are between 0.5 and 1 (higher means more foot lag)
+    STRIDE_FOOT_SUPPORT_FRACTION = 0.75 # 0 .. 1, good values are between 0.5 and 1 (higher means more foot lag)
 
     @_strideTime += @_physicsStepDuration
     strideOverflow = Math.floor @_strideTime / @_strideDuration
