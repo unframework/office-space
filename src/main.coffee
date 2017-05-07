@@ -29,9 +29,8 @@ renderClayScene = new ClayRenderer regl
 
 WALKWAY_MARGIN = 0.1
 bumperList = [
-  [ -WALKWAY_MARGIN, -WALKWAY_MARGIN, 8, 8 ]
-  [ -4, -4, -3 + WALKWAY_MARGIN, 8 ]
-  [ -4, -4, 8, -3 + WALKWAY_MARGIN ]
+  [ -8, -WALKWAY_MARGIN, 8, -WALKWAY_MARGIN ]
+  [ -8, -4, 8, -3 + WALKWAY_MARGIN ]
 ]
 world = new World(bumperList)
 
@@ -100,8 +99,8 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.ortho lightProjection, -12, 12, -12, 12, -12, 12
 
   mat4.identity lightTransform
-  mat4.rotateX lightTransform, lightTransform, -0.6
-  mat4.rotateZ lightTransform, lightTransform, 3 * Math.PI / 4
+  mat4.rotateX lightTransform, lightTransform, -0.3
+  mat4.rotateZ lightTransform, lightTransform, -1 * Math.PI / 4
 
   regl.clear
     color: [ 1, 1, 1, 1 ]

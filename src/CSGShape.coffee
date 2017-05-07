@@ -2,8 +2,8 @@ color = require('onecolor')
 CSG = require('csg')
 
 ground = CSG.cube(
-  center: [ 2.5, 2.5, -0.1 ]
-  radius: [ 5.5, 5.5, 0.1 ]
+  center: [ 0, 2.5, -0.1 ]
+  radius: [ 8, 5.5, 0.1 ]
 )
 
 building = CSG.cube(

@@ -13,16 +13,21 @@ SLOW_FRACTION = 1
 EDGE_EXTENT = 6
 EDGE_MARGIN = 1 # to avoid immediate de-spawn when right next to the edge
 
-createCornerRouter = (flowIsOpposite) ->
-  (physicsBody) ->
-    pos = physicsBody.GetPosition()
+# @todo use again later
+# createCornerRouter = (flowIsOpposite) ->
+#   (physicsBody) ->
+#     pos = physicsBody.GetPosition()
 
-    if pos.x < 0 and pos.y < 0
-      Math.atan2(pos.y, pos.x) + (if flowIsOpposite then -Math.PI / 2 else Math.PI / 2)
-    else if pos.x > pos.y
-      if flowIsOpposite then Math.PI else 0
-    else
-      if flowIsOpposite then Math.PI / 2 else -Math.PI / 2
+#     if pos.x < 0 and pos.y < 0
+#       Math.atan2(pos.y, pos.x) + (if flowIsOpposite then -Math.PI / 2 else Math.PI / 2)
+#     else if pos.x > pos.y
+#       if flowIsOpposite then Math.PI else 0
+#     else
+#       if flowIsOpposite then Math.PI / 2 else -Math.PI / 2
+
+createSimpleRouter = (flowIsOpposite) ->
+  (physicsBody) ->
+    if flowIsOpposite then Math.PI else 0
 
 populateOrthoBumpers = (orthoBumperList, physicsWorld) ->
   fixDef = new b2FixtureDef()
@@ -63,7 +68,7 @@ class World
 
       person.onPhysicsStep() for person in @_personList
 
-      toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > EDGE_EXTENT + EDGE_MARGIN or person._mainBody.GetPosition().y > EDGE_EXTENT + EDGE_MARGIN)
+      toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > EDGE_EXTENT + EDGE_MARGIN or person._mainBody.GetPosition().x < -(EDGE_EXTENT + EDGE_MARGIN))
 
       for person in toRemove
         @_personList.splice @_personList.indexOf(person), 1
@@ -76,8 +81,8 @@ class World
     across = 0.5 + Math.random() * 2
 
     if Math.random() > 0.5
-      new Person(@_physicsStepDuration, @_physicsWorld, -across, setback, createCornerRouter(Math.random() > 0.5))
+      new Person(@_physicsStepDuration, @_physicsWorld, -setback, -across, createSimpleRouter(Math.random() > 0.5))
     else
-      new Person(@_physicsStepDuration, @_physicsWorld, setback, -across, createCornerRouter(Math.random() > 0.5))
+      new Person(@_physicsStepDuration, @_physicsWorld, setback, -across, createSimpleRouter(Math.random() > 0.5))
 
 module.exports = World
