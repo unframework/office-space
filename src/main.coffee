@@ -1,17 +1,30 @@
+CSG = require('csg')
 vec3 = require('gl-matrix').vec3
 vec4 = require('gl-matrix').vec4
 mat4 = require('gl-matrix').mat4
 regl = require('regl')
   extensions: 'oes_texture_float'
 
+Building = require('./Building.coffee')
 World = require('./World.coffee')
 ClayRenderer = require('./ClayRenderer.coffee')
+createCSGShape = require('./CSGShape.coffee')
 
 personShape = null
 require('./PersonShape.coffee')(regl).then (v) -> personShape = v
 
+buildingShapeList = (createCSGShape(regl, building._csg) for building in [
+  new Building(4, 8, 0)
+  new Building(0, 4, 0)
+  new Building(-4, 0, 0)
+  new Building(-8, -4, 0)
+])
+
 groundShape = require('./GroundShape.coffee')(regl)
-csgShape = require('./CSGShape.coffee')(regl)
+pavementShape = createCSGShape(regl, CSG.cube(
+  center: [ 0, 2.5, -0.1 ]
+  radius: [ 8, 5.5, 0.1 ]
+))
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
 debugRayXRayShape = require('./DebugRayShape.coffee')(regl, true)
@@ -113,7 +126,9 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
       colorB: [ 0.29, 0.29, 0.28, 1 ]
     , renderNonShadowing
 
-    csgShape render
+    pavementShape render
+    for bldgShape in buildingShapeList
+      bldgShape render
 
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props

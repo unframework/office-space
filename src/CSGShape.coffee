@@ -1,29 +1,4 @@
-color = require('onecolor')
-CSG = require('csg')
-
-Building = require('./Building.coffee')
-
-ground = CSG.cube(
-  center: [ 0, 2.5, -0.1 ]
-  radius: [ 8, 5.5, 0.1 ]
-)
-
-buildingList = [
-  new Building(4, 8, 0)
-  new Building(0, 4, 0)
-  new Building(-4, 0, 0)
-  new Building(-8, -4, 0)
-]
-
-buildingsShape = buildingList.reduce (shape, building) ->
-  shape.union building._csg
-, new CSG()
-
-polygonList = (
-  buildingsShape.union ground
-).toPolygons()
-
-module.exports = (regl) -> regl
+module.exports = (regl, shape) -> polygonList = shape.toPolygons(); regl
   context:
     clay:
       vert: '''
