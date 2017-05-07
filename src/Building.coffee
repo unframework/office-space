@@ -13,11 +13,20 @@ paint = (shape, polyColor) ->
   for poly in shape.toPolygons()
     poly.shared = { color: rgb }
 
+unionAll = (shape, otherShapeList) ->
+  otherShapeList.reduce (sh, osh) ->
+    sh.union osh
+  , shape
+
 subtractAll = (shape, otherShapeList) ->
   otherShapeList.reduce (sh, osh) ->
     sh.subtract osh
   , shape
 
+# @todo roof (edge lip), balconies, sun-shade protrusions
+# @todo awnings, recessed entrance, extra first floor base
+# @todo doodads (AC, rooftop gribble, newspaper stands, vending machines)
+# @todo ad space, signs
 class Building
   constructor: (leftX, rightX, frontY) ->
     width = rightX - leftX
@@ -38,7 +47,7 @@ class Building
     windowSillHeight = randomAmount(0.4, 0.6, 0.02)
     windowTopHeight = floorHeight - randomAmount(0.05, 0.3, 0.02)
     windowHeight = windowTopHeight - windowSillHeight
-    windowSideOffset = randomAmount(0.02, 0.2, 0.02)
+    windowSideOffset = randomAmount(0.06, 0.2, 0.02)
     windowDepth = windowSideOffset / 2
 
     coreShape = CSG.cube(
@@ -48,25 +57,52 @@ class Building
 
     paint coreShape, buildingColor
 
-    windowBoxList = [].concat.apply [], (for floorIndex in [ 0...floorCount ]
+    windowBoxList = [].concat.apply [], (for floorIndex in [ 1...floorCount ]
       for panelIndex in [ 0...panelCount ]
         panelBottom = floorIndex * floorHeight
         panelLeftX = leftX + panelIndex * panelWidth
+
         windowBox = CSG.cube(
           center: [ panelLeftX + panelWidth / 2, frontY + windowDepth / 2, panelBottom + windowSillHeight + windowHeight / 2 ]
           radius: [ panelWidth / 2 - windowSideOffset, windowDepth / 2, windowHeight / 2 ]
         )
-
         paint windowBox, windowColor
 
         windowBox
     )
 
-    # console.log windowBoxList
-
-    @_csg = subtractAll(
+    coreShapeWithWindows = subtractAll(
       coreShape,
       windowBoxList
     )
+
+    gallerySideOffset = windowSideOffset
+    galleryTopHeight = floorHeight - randomAmount(0.06, 0.3, 0.02)
+    galleryDepth = windowDepth
+    galleryPillarRadius = Math.min(randomAmount(0.02, 0.08, 0.02), galleryDepth - 0.02)
+
+    galleryBox = CSG.cube(
+      center: [ leftX + width / 2, frontY + galleryDepth / 2, galleryTopHeight / 2 ]
+      radius: [ width / 2 - gallerySideOffset, galleryDepth / 2, galleryTopHeight / 2 ]
+    )
+    paint galleryBox, windowColor
+
+    galleryPillarBoxList = for panelIndex in [ 1...panelCount ]
+      pillarBox = CSG.cube(
+        center: [ leftX + panelIndex * panelWidth, frontY + galleryDepth, galleryTopHeight / 2 ]
+        radius: [ galleryPillarRadius, galleryPillarRadius, galleryTopHeight / 2 ]
+      )
+      paint pillarBox, windowColor
+
+      pillarBox
+
+    coreShapeWithWindowsAndGallery = unionAll(
+      coreShapeWithWindows.subtract(galleryBox),
+      galleryPillarBoxList
+    )
+
+    # console.log windowBoxList
+
+    @_csg = coreShapeWithWindowsAndGallery
 
 module.exports = Building
