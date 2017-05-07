@@ -1,22 +1,26 @@
 color = require('onecolor')
 CSG = require('csg')
 
+Building = require('./Building.coffee')
+
 ground = CSG.cube(
   center: [ 0, 2.5, -0.1 ]
   radius: [ 8, 5.5, 0.1 ]
 )
 
-building = CSG.cube(
-  center: [ 4, 4, 5 ]
-  radius: [ 4, 4, 5 ]
-)
+buildingList = [
+  new Building(4, 8, 0)
+  new Building(0, 4, 0)
+  new Building(-4, 0, 0)
+  new Building(-8, -4, 0)
+]
 
-buildingColor = new color.HSL(0.3 + Math.random() * 0.4, 0.6 + Math.random() * 0.2, 0.05 + Math.random() * 0.1).rgb()
-for poly in building.toPolygons()
-  poly.shared = { color: buildingColor }
+buildingsShape = buildingList.reduce (shape, building) ->
+  shape.union building._csg
+, new CSG()
 
 polygonList = (
-  building.union ground
+  buildingsShape.union ground
 ).toPolygons()
 
 module.exports = (regl) -> regl
