@@ -28,7 +28,7 @@ pavementShape = createCSGShape(regl, CSG.cube(
   radius: [ 12, 5.5, 0.1 ]
 ))
 
-bridge = new Bridge(4, 12, 0.5)
+bridge = new Bridge(4 + 0.2, 12 - 0.2, 0.5)
 bridgeShape = createCSGShape(regl, bridge._csg)
 
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
@@ -46,10 +46,10 @@ lightTransform = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
-WALKWAY_MARGIN = 0.1
+WALKWAY_MARGIN = 0.2
 bumperList = [
-  [ -8, -WALKWAY_MARGIN, 8, -WALKWAY_MARGIN ]
-  [ -8, -4, 8, -3 + WALKWAY_MARGIN ]
+  [ -12, -WALKWAY_MARGIN, 12, -WALKWAY_MARGIN ]
+  [ -12, -4, 12, -3 + WALKWAY_MARGIN ]
 ]
 world = new World(bumperList)
 
