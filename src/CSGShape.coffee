@@ -75,7 +75,7 @@ module.exports = (regl, shape) -> polygonList = shape.toPolygons(); regl
         polyColorValues = if polyColor
           [ polyColor.red(), polyColor.green(), polyColor.blue() ]
         else
-          [ 0.5, 0.5, 0.5 ]
+          [ 0.3, 0.3, 0.3 ]
 
         (polyColorValues for i in [ 0 ... (poly.vertices.length - 2) * 3 ])
     )

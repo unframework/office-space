@@ -33,7 +33,8 @@ class Building
     depth = 8
 
     buildingColor = new color.HSL(0.05 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.15 + Math.random() * 0.1)
-    windowColor = buildingColor.saturation(-0.3, true).lightness(-0.05, true)
+    windowColor = new color.HSL(0.1 + Math.random() * 0.2, 0.1 + Math.random() * 0.1, 0.05 + Math.random() * 0.05)
+    galleryPillarColor = windowColor.lightness(-0.04, true)
 
     floorHeight = randomAmount(2, 2.5, 0.1)
     floorCount = randomAmount(3, 6, 1)
@@ -79,7 +80,7 @@ class Building
     gallerySideOffset = windowSideOffset
     galleryTopHeight = floorHeight - randomAmount(0.06, 0.3, 0.02)
     galleryDepth = windowDepth
-    galleryPillarRadius = Math.min(randomAmount(0.02, 0.08, 0.02), galleryDepth - 0.02)
+    galleryPillarRadius = Math.min(randomAmount(0.06, 0.1, 0.02), galleryDepth - 0.02)
 
     galleryBox = CSG.cube(
       center: [ leftX + width / 2, frontY + galleryDepth / 2, galleryTopHeight / 2 ]
@@ -92,7 +93,7 @@ class Building
         center: [ leftX + panelIndex * panelWidth, frontY + galleryDepth, galleryTopHeight / 2 ]
         radius: [ galleryPillarRadius, galleryPillarRadius, galleryTopHeight / 2 ]
       )
-      paint pillarBox, windowColor
+      paint pillarBox, galleryPillarColor
 
       pillarBox
 

@@ -128,8 +128,8 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   renderClayScene camera, lightProjection, lightTransform, (render, renderNonShadowing) ->
     groundShape
       z: -0.1
-      colorA: [ 0.22, 0.22, 0.2, 1 ]
-      colorB: [ 0.29, 0.29, 0.28, 1 ]
+      colorA: [ 0.05, 0.05, 0.07, 1 ]
+      colorB: [ 0.07, 0.07, 0.09, 1 ]
     , renderNonShadowing
 
     pavementShape render
