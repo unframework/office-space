@@ -12,7 +12,7 @@ module.exports = (regl) -> regl
         varying vec4 fColor;
 
         void claySetup() {
-          fColor = mix(colorA, colorB, (position.y + 8.0) / 16.0);
+          fColor = mix(colorA, colorB, (position.y + 12.0) / 24.0);
         }
 
         vec4 clayPosition() {
@@ -44,10 +44,10 @@ module.exports = (regl) -> regl
 
   attributes:
     position: regl.buffer [
-      [-8, -8]
-      [8, -8]
-      [8,  8]
-      [-8, 8]
+      [-12, -12]
+      [12, -12]
+      [12,  12]
+      [-12, 12]
     ]
 
   uniforms:

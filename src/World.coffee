@@ -10,7 +10,7 @@ Person = require('./Person.coffee')
 STEP_TIME = 0.04
 SLOW_FRACTION = 1
 
-EDGE_EXTENT = 6
+EDGE_EXTENT = 10
 EDGE_MARGIN = 1 # to avoid immediate de-spawn when right next to the edge
 
 # @todo use again later
