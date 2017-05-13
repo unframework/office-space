@@ -1,8 +1,10 @@
-module.exports = (regl, shape) -> polygonList = shape.toPolygons(); regl
+module.exports = (regl, shape, isTransformed) -> polygonList = shape.toPolygons(); regl
   context:
     clay:
       vert: '''
         precision mediump float;
+
+        ''' + (if isTransformed then 'uniform mat4 model;' else '') + '''
 
         attribute vec3 position;
         attribute vec3 normal;
@@ -12,12 +14,21 @@ module.exports = (regl, shape) -> polygonList = shape.toPolygons(); regl
         varying vec4 fColor;
 
         void claySetup() {
-          fNormal = vec4(normal, 0);
+          ''' + (if isTransformed
+            'fNormal = model * vec4(normal, 0);'
+          else
+            'fNormal = vec4(normal, 0);'
+          ) + '''
+
           fColor = vec4(color, 1);
         }
 
         vec4 clayPosition() {
-          return vec4(position, 1);
+          ''' + (if isTransformed
+            'return model * vec4(position, 1);'
+          else
+            'return vec4(position, 1);'
+          ) + '''
         }
 
         #pragma glslify: export(claySetup)
@@ -43,6 +54,8 @@ module.exports = (regl, shape) -> polygonList = shape.toPolygons(); regl
 
         #pragma glslify: export(claySetup)
       '''
+
+  uniforms: (if isTransformed then { model: regl.prop 'model' } else {})
 
   attributes:
     position: regl.buffer (

@@ -7,6 +7,7 @@ regl = require('regl')
 
 Building = require('./Building.coffee')
 Bridge = require('./Bridge.coffee')
+Train = require('./Train.coffee')
 World = require('./World.coffee')
 ClayRenderer = require('./ClayRenderer.coffee')
 createCSGShape = require('./CSGShape.coffee')
@@ -31,6 +32,8 @@ pavementShape = createCSGShape(regl, CSG.cube(
 bridge = new Bridge(4 + 0.2, 12 - 0.2, 0.5)
 bridgeShape = createCSGShape(regl, bridge._csg)
 
+train = new Train(6, -20, 2.8)
+
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
 debugRayXRayShape = require('./DebugRayShape.coffee')(regl, true)
@@ -52,6 +55,26 @@ bumperList = [
   [ -12, -4, 12, -3 + WALKWAY_MARGIN ]
 ]
 world = new World(bumperList)
+
+class TrainRenderer
+  constructor: (@_train) ->
+    @_pos = vec3.create()
+    @_modelList = (mat4.create() for o in @_train._carOffsetList)
+    @_shape = createCSGShape(regl, @_train._carCSG, true)
+
+  update: ->
+    # recompute position matrix for each car
+    for model, carIndex in @_modelList
+      vec3.set @_pos, @_train._offsetX, @_train._carOffsetList[carIndex], @_train._offsetZ
+
+      mat4.identity model
+      mat4.translate model, model, @_pos
+
+  draw: (command) ->
+    for model in @_modelList
+      @_shape { model: model }, command
+
+tr = new TrainRenderer(train)
 
 class PersonRenderer
   constructor: ->
@@ -136,6 +159,9 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     bridgeShape render
     for bldgShape in buildingShapeList
       bldgShape render
+
+    tr.update()
+    tr.draw render
 
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
