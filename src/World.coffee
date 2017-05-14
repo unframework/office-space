@@ -8,7 +8,7 @@ b2Body = require('box2dweb').Dynamics.b2Body
 Person = require('./Person.coffee')
 Train = require('./Train.coffee')
 
-STEP_TIME = 0.04
+STEP_TIME = 0.02
 SLOW_FRACTION = 1
 
 EDGE_EXTENT = 10
