@@ -7,7 +7,6 @@ regl = require('regl')
 
 Building = require('./Building.coffee')
 Bridge = require('./Bridge.coffee')
-Train = require('./Train.coffee')
 World = require('./World.coffee')
 ClayRenderer = require('./ClayRenderer.coffee')
 createCSGShape = require('./CSGShape.coffee')
@@ -31,8 +30,6 @@ pavementShape = createCSGShape(regl, CSG.cube(
 
 bridge = new Bridge(4 + 0.2, 12 - 0.2, 0.5)
 bridgeShape = createCSGShape(regl, bridge._csg)
-
-train = new Train(6, -20, 2.8)
 
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
@@ -74,7 +71,7 @@ class TrainRenderer
     for model in @_modelList
       @_shape { model: model }, command
 
-tr = new TrainRenderer(train)
+tr = new TrainRenderer(world._train)
 
 class PersonRenderer
   constructor: ->

@@ -6,6 +6,7 @@ b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
 b2Body = require('box2dweb').Dynamics.b2Body
 
 Person = require('./Person.coffee')
+Train = require('./Train.coffee')
 
 STEP_TIME = 0.04
 SLOW_FRACTION = 1
@@ -63,10 +64,13 @@ class World
     @_personList = for i in [ 0 ... 80 ]
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)
 
+    @_train = new Train(@_physicsStepDuration, 6, -100, 2.8)
+
     setInterval =>
       @_physicsWorld.Step(@_physicsStepDuration, 10, 10)
 
       person.onPhysicsStep() for person in @_personList
+      @_train.onPhysicsStep()
 
       toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > EDGE_EXTENT + EDGE_MARGIN or person._mainBody.GetPosition().x < -(EDGE_EXTENT + EDGE_MARGIN))
 

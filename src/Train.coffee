@@ -16,13 +16,15 @@ paint = (shape, polyColor) ->
     poly.shared = { color: rgb }
 
 class Train
-  constructor: (@_offsetX, @_offsetY, @_offsetZ) ->
+  constructor: (@_physicsStepDuration, @_offsetX, @_offsetY, @_offsetZ) ->
+    @_speed = 30
+
     carWidth = 3
     carLength = 16
     carHeight = 3.2
     carBodyOffsetZ = 1 # rail to bottom of the body
     carSpacing = 0.5
-    carCount = 4
+    @_carCount = 4
 
     carColor = new color.HSL(0.5 + Math.random() * 0.2, 0.3 + Math.random() * 0.2, 0.4 + Math.random() * 0.1)
 
@@ -32,7 +34,14 @@ class Train
       )
     paint @_carCSG, carColor
 
-    @_carOffsetList = for i in [ 0...carCount ]
+    @_carOffsetList = for i in [ 0...@_carCount ]
       i * (carLength + carSpacing)
+
+  onPhysicsStep: ->
+    for i in [ 0...@_carCount ]
+      @_carOffsetList[i] += @_speed * @_physicsStepDuration
+
+      if @_carOffsetList[i] > 200
+        @_carOffsetList[i] -= 400
 
 module.exports = Train
