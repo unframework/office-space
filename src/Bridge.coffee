@@ -28,10 +28,10 @@ class Bridge
 
     coverShape = CSG.cube(
       center: [ leftX + width / 2, frontY, height + coverThickness / 2]
-      radius: [ width / 2, 12, coverThickness / 2]
+      radius: [ width / 2, 30, coverThickness / 2]
     ).union CSG.cube(
       center: [ leftX + 0.2, frontY, height + coverThickness + 0.6 / 2]
-      radius: [ 0.1, 12, 0.6 / 2]
+      radius: [ 0.1, 30, 0.6 / 2]
     )
     paint coverShape, bridgeColor
 
