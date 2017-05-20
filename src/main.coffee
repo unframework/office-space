@@ -75,7 +75,10 @@ bumperList = [
 ]
 world = new World(bumperList)
 
-buildingShapeList = (createCSGShape(regl, building._csg) for building in world._buildingList)
+buildingShapeList = []
+world.buildings.on 'data', (building) =>
+  buildingShapeList.push createCSGShape(regl, building._csg)
+
 bridgeShape = createCSGShape(regl, world._bridge._csg)
 
 class TrainRenderer

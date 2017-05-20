@@ -5,6 +5,8 @@ b2PolygonShape = require('box2dweb').Collision.Shapes.b2PolygonShape
 b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
 b2Body = require('box2dweb').Dynamics.b2Body
 
+Readable = require('stream').Readable
+
 Bridge = require('./Bridge.coffee')
 Building = require('./Building.coffee')
 Person = require('./Person.coffee')
@@ -85,12 +87,15 @@ class TimeStepper
 
 class World
   constructor: (orthoBumperList) ->
+    @buildings = new Readable({ objectMode: true })
+    @buildings._read = () => {} # no-op, we just wait for data to come in
+
     @_physicsWorld = new b2World(new b2Vec2(0, 0), true)
     @_physicsStepDuration = STEP_TIME * SLOW_FRACTION # @todo instead, divide the value passed into TimeStepper?
 
     populateOrthoBumpers orthoBumperList, @_physicsWorld
 
-    @_buildingList = [
+    @buildings.push(building) for building in [
       new Building(0, 4, 0)
       new Building(-4, 0, 0)
       new Building(-8, -4, 0)
