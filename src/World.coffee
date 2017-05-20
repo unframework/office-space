@@ -8,7 +8,7 @@ b2Body = require('box2dweb').Dynamics.b2Body
 Person = require('./Person.coffee')
 Train = require('./Train.coffee')
 
-STEP_TIME = 0.02
+STEP_TIME = 0.02 # @todo smaller time step to avoid frame skip
 SLOW_FRACTION = 1
 
 EDGE_EXTENT = 10
@@ -54,10 +54,37 @@ populateOrthoBumpers = (orthoBumperList, physicsWorld) ->
     bumperBody = physicsWorld.CreateBody(bodyDef)
     bumperBody.CreateFixture(fixDef)
 
+# run through steps
+class TimeStepper
+  constructor: (stepTime, onStep) ->
+    lastTimeMs = null
+    accumulatorMs = 0
+    stepTimeMs = stepTime * 1000
+
+    onRAF = (currentTimeMs) =>
+      # update time accumulator, limiting the maximum steps to process
+      if lastTimeMs isnt null
+        deltaMs = currentTimeMs - lastTimeMs
+        accumulatorMs = Math.min(200, accumulatorMs + deltaMs)
+
+      lastTimeMs = currentTimeMs
+
+      # run through the fixed steps
+      while accumulatorMs > 0
+        accumulatorMs -= stepTimeMs
+
+        onStep()
+
+      # schedule next frame
+      @_rafRequestId = requestAnimationFrame onRAF
+
+    # schedule first frame
+    @_rafRequestId = requestAnimationFrame onRAF
+
 class World
   constructor: (orthoBumperList) ->
     @_physicsWorld = new b2World(new b2Vec2(0, 0), true)
-    @_physicsStepDuration = STEP_TIME * SLOW_FRACTION
+    @_physicsStepDuration = STEP_TIME * SLOW_FRACTION # @todo instead, divide the value passed into TimeStepper?
 
     populateOrthoBumpers orthoBumperList, @_physicsWorld
 
@@ -66,7 +93,7 @@ class World
 
     @_train = new Train(@_physicsStepDuration, 6, -100, 2.8)
 
-    setInterval =>
+    new TimeStepper(STEP_TIME, () =>
       @_physicsWorld.Step(@_physicsStepDuration, 10, 10)
 
       person.onPhysicsStep() for person in @_personList
@@ -79,7 +106,7 @@ class World
         person.disconnectPhysics()
 
         @_personList.push @_generatePerson(EDGE_EXTENT)
-    , Math.ceil(STEP_TIME * 1000)
+    )
 
   _generatePerson: (setback)->
     across = 0.5 + Math.random() * 2
