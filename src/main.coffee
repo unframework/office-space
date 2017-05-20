@@ -2,7 +2,41 @@ CSG = require('csg')
 vec3 = require('gl-matrix').vec3
 vec4 = require('gl-matrix').vec4
 mat4 = require('gl-matrix').mat4
+
+document.body.style.margin = '0'
+document.body.style.padding = '0'
+document.body.style.background = '#70787f'
+
+alignmentAid = document.createElement 'div'
+alignmentAid.style.display = 'inline-block'
+alignmentAid.style.verticalAlign = 'middle'
+alignmentAid.style.width = '0'
+alignmentAid.style.height = '100vh'
+
+container = document.createElement 'div'
+container.style.position = 'relative'
+container.style.display = 'inline-block'
+container.style.verticalAlign = 'middle'
+container.style.width = '100%'
+container.style.height = '0'
+container.style.paddingTop = '56.25%'
+
+canvas = document.createElement 'canvas'
+canvas.style.position = 'absolute'
+canvas.style.top = 0
+canvas.style.left = 0
+canvas.style.width = '100%'
+canvas.style.height = '100%'
+
+container.appendChild canvas
+document.body.appendChild alignmentAid
+document.body.appendChild container
+
+canvas.width = canvas.offsetWidth
+canvas.height = canvas.offsetHeight
+
 regl = require('regl')
+  canvas: canvas
   extensions: 'oes_texture_float'
 
 Building = require('./Building.coffee')
