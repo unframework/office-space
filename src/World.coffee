@@ -5,6 +5,8 @@ b2PolygonShape = require('box2dweb').Collision.Shapes.b2PolygonShape
 b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
 b2Body = require('box2dweb').Dynamics.b2Body
 
+Bridge = require('./Bridge.coffee')
+Building = require('./Building.coffee')
 Person = require('./Person.coffee')
 Train = require('./Train.coffee')
 
@@ -87,6 +89,15 @@ class World
     @_physicsStepDuration = STEP_TIME * SLOW_FRACTION # @todo instead, divide the value passed into TimeStepper?
 
     populateOrthoBumpers orthoBumperList, @_physicsWorld
+
+    @_buildingList = [
+      new Building(0, 4, 0)
+      new Building(-4, 0, 0)
+      new Building(-8, -4, 0)
+      new Building(-12, -8, 0)
+    ]
+
+    @_bridge = new Bridge(4 + 0.2, 12 - 0.2, 0.5)
 
     @_personList = for i in [ 0 ... 80 ]
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)

@@ -39,8 +39,6 @@ regl = require('regl')
   canvas: canvas
   extensions: 'oes_texture_float'
 
-Building = require('./Building.coffee')
-Bridge = require('./Bridge.coffee')
 World = require('./World.coffee')
 ClayRenderer = require('./ClayRenderer.coffee')
 createCSGShape = require('./CSGShape.coffee')
@@ -48,22 +46,12 @@ createCSGShape = require('./CSGShape.coffee')
 personShape = null
 require('./PersonShape.coffee')(regl).then (v) -> personShape = v
 
-buildingShapeList = (createCSGShape(regl, building._csg) for building in [
-  new Building(0, 4, 0)
-  new Building(-4, 0, 0)
-  new Building(-8, -4, 0)
-  new Building(-12, -8, 0)
-])
-
 groundShape = require('./GroundShape.coffee')(regl)
 
 pavementShape = createCSGShape(regl, CSG.cube(
   center: [ 0, 2.5, -0.1 ]
   radius: [ 12, 5.5, 0.1 ]
 ))
-
-bridge = new Bridge(4 + 0.2, 12 - 0.2, 0.5)
-bridgeShape = createCSGShape(regl, bridge._csg)
 
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
@@ -86,6 +74,9 @@ bumperList = [
   [ -12, -4, 12, -3 + WALKWAY_MARGIN ]
 ]
 world = new World(bumperList)
+
+buildingShapeList = (createCSGShape(regl, building._csg) for building in world._buildingList)
+bridgeShape = createCSGShape(regl, world._bridge._csg)
 
 class TrainRenderer
   constructor: (@_train) ->
