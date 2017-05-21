@@ -7,6 +7,7 @@ b2Body = require('box2dweb').Dynamics.b2Body
 
 Readable = require('stream').Readable
 
+TimeStepper = require('./TimeStepper.coffee')
 Bridge = require('./Bridge.coffee')
 Building = require('./Building.coffee')
 Person = require('./Person.coffee')
@@ -57,33 +58,6 @@ populateOrthoBumpers = (orthoBumperList, physicsWorld) ->
 
     bumperBody = physicsWorld.CreateBody(bodyDef)
     bumperBody.CreateFixture(fixDef)
-
-# run through steps
-class TimeStepper
-  constructor: (stepTime, onStep) ->
-    lastTimeMs = null
-    accumulatorMs = 0
-    stepTimeMs = stepTime * 1000
-
-    onRAF = (currentTimeMs) =>
-      # update time accumulator, limiting the maximum steps to process
-      if lastTimeMs isnt null
-        deltaMs = currentTimeMs - lastTimeMs
-        accumulatorMs = Math.min(200, accumulatorMs + deltaMs)
-
-      lastTimeMs = currentTimeMs
-
-      # run through the fixed steps
-      while accumulatorMs > 0
-        accumulatorMs -= stepTimeMs
-
-        onStep()
-
-      # schedule next frame
-      @_rafRequestId = requestAnimationFrame onRAF
-
-    # schedule first frame
-    @_rafRequestId = requestAnimationFrame onRAF
 
 class World
   constructor: (orthoBumperList) ->
