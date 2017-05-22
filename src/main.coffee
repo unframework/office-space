@@ -90,21 +90,6 @@ world.buildingsOut.on 'data', (building) =>
 
   shape.destroy()
 
-bridgeShapeList = []
-world.bridges.on 'data', (bridge) =>
-  shape = createCSGShape(regl, bridge._csg)
-  shape._bridge = bridge
-
-  bridgeShapeList.push shape
-
-world.bridgesOut.on 'data', (bridge) =>
-  [ shapeIndex ] = (shapeIndex for shape, shapeIndex in bridgeShapeList when shape._bridge is bridge)
-
-  shape = bridgeShapeList[shapeIndex]
-  bridgeShapeList.splice shapeIndex, 1
-
-  shape.destroy()
-
 class TrainRenderer
   constructor: (@_train) ->
     @_pos = vec3.create()
@@ -123,7 +108,25 @@ class TrainRenderer
     for model in @_modelList
       @_shape { model: model }, command
 
-# tr = new TrainRenderer(world._bridge._train)
+  destroy: ->
+    @_shape.destroy()
+
+bridgeShapeList = []
+world.bridges.on 'data', (bridge) =>
+  shape = createCSGShape(regl, bridge._csg)
+  shape._bridge = bridge
+  shape._trainRenderer = new TrainRenderer(bridge._train)
+
+  bridgeShapeList.push shape
+
+world.bridgesOut.on 'data', (bridge) =>
+  [ shapeIndex ] = (shapeIndex for shape, shapeIndex in bridgeShapeList when shape._bridge is bridge)
+
+  shape = bridgeShapeList[shapeIndex]
+  bridgeShapeList.splice shapeIndex, 1
+
+  shape.destroy()
+  shape._trainRenderer.destroy()
 
 class PersonRenderer
   constructor: ->
@@ -209,11 +212,11 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     for bridgeShape in bridgeShapeList
       bridgeShape render
 
+      bridgeShape._trainRenderer.update()
+      bridgeShape._trainRenderer.draw render
+
     for bldgShape in buildingShapeList
       bldgShape render
-
-    # tr.update()
-    # tr.draw render
 
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
