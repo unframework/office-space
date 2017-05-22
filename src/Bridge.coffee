@@ -37,6 +37,8 @@ class Bridge
     )
     paint coverShape, bridgeColor
 
+    @leftX = leftX
+    @rightX = rightX
     @_csg = footShape.union coverShape
 
     @_train = new Train(@_physicsStepDuration, leftX + 2, -100, 2.8)

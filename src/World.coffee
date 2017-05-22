@@ -63,6 +63,8 @@ class World
   constructor: (orthoBumperList) ->
     @buildings = new Readable({ objectMode: true, read: () => {} })
     @buildingsOut = new Readable({ objectMode: true, read: () => {} })
+    @bridges = new Readable({ objectMode: true, read: () => {} })
+    @bridgesOut = new Readable({ objectMode: true, read: () => {} })
 
     @_physicsWorld = new b2World(new b2Vec2(0, 0), true)
     @_physicsStepDuration = STEP_TIME * SLOW_FRACTION # @todo instead, divide the value passed into TimeStepper?
@@ -72,7 +74,8 @@ class World
     @_focusedBuildingList = []
     @_focusX = -0.1
 
-    @_bridge = new Bridge(@_physicsStepDuration, 4 + 0.2, 12 - 0.2, 0.5)
+    @_bridge = null
+    @_nextBridgeX = 4
 
     @_personList = for i in [ 0 ... 80 ]
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)
@@ -90,12 +93,24 @@ class World
         while @_focusedBuildingList[0].rightX <= x
           @buildingsOut.push @_focusedBuildingList.shift()
 
+      if newFocusX + 12 > @_nextBridgeX
+        if @_bridge
+          @bridgesOut.push @_bridge
+          @_bridge = null
+
+        @_bridge = new Bridge(@_physicsStepDuration, @_nextBridgeX, @_nextBridgeX + 8, 0.5)
+        @bridges.push @_bridge
+
+        @_nextBridgeX += 32
+
       @_focusX = newFocusX
 
       @_physicsWorld.Step(@_physicsStepDuration, 10, 10)
 
       person.onPhysicsStep() for person in @_personList
-      @_bridge.onPhysicsStep()
+
+      if @_bridge
+        @_bridge.onPhysicsStep()
 
       toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > EDGE_EXTENT + EDGE_MARGIN or person._mainBody.GetPosition().x < -(EDGE_EXTENT + EDGE_MARGIN))
 
