@@ -16,7 +16,7 @@ Person = require('./Person.coffee')
 STEP_TIME = 0.02 # @todo smaller time step to avoid frame skip
 SLOW_FRACTION = 1
 
-EDGE_EXTENT = 10
+EDGE_EXTENT = 20
 EDGE_MARGIN = 1 # to avoid immediate de-spawn when right next to the edge
 
 # @todo use again later
@@ -62,12 +62,14 @@ populateOrthoBumpers = (orthoBumperList, physicsWorld) ->
 
 WALKWAY_MARGIN = 0.2
 orthoBumperList = [
-  [ -12, -WALKWAY_MARGIN, 12, 1 + WALKWAY_MARGIN ]
-  [ -12, -4, 12, -3 + WALKWAY_MARGIN ]
+  [ -EDGE_EXTENT, -WALKWAY_MARGIN, EDGE_EXTENT, 1 + WALKWAY_MARGIN ]
+  [ -EDGE_EXTENT, -4, EDGE_EXTENT, -3 + WALKWAY_MARGIN ]
 ]
 
 class World
   constructor: () ->
+    @_focusX = 0
+
     @buildings = new Readable({ objectMode: true, read: () => {} })
     @buildingsOut = new Readable({ objectMode: true, read: () => {} })
     @bridges = new Readable({ objectMode: true, read: () => {} })
@@ -80,9 +82,7 @@ class World
     bumperBodyPos = new b2Vec2() # for dynamic updates
 
     @_focusedBuildingList = []
-    @_nextBuildingX = -12
-
-    @_focusX = -0.1
+    @_nextBuildingX = -EDGE_EXTENT
 
     @_bridge = null
     @_nextBridgeX = 4
@@ -92,8 +92,8 @@ class World
 
     new TimeStepper(STEP_TIME, () =>
       @_focusX += STEP_TIME * 0.5
-      focusRightX = @_focusX + 8
-      focusLeftX = @_focusX - 8
+      focusRightX = @_focusX + EDGE_EXTENT
+      focusLeftX = @_focusX - EDGE_EXTENT
 
       bumperBodyPos.Set @_focusX, 0
       @_bumperBody.SetPosition bumperBodyPos
@@ -116,10 +116,10 @@ class World
           @bridgesOut.push @_bridge
           @_bridge = null
 
-        @_bridge = new Bridge(@_physicsStepDuration, @_nextBridgeX, @_nextBridgeX + 8, 0.5)
+        @_bridge = new Bridge(@_physicsStepDuration, @_nextBridgeX, @_nextBridgeX + 4, 0.5)
         @bridges.push @_bridge
 
-        @_nextBridgeX += 32
+        @_nextBridgeX = @_bridge.rightX + Math.ceil((EDGE_EXTENT * 2) / 4) * 4
 
         # next building starts after bridge
         @_nextBuildingX = @_bridge.rightX
@@ -131,13 +131,13 @@ class World
       if @_bridge
         @_bridge.onPhysicsStep()
 
-      toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > @_focusX + EDGE_EXTENT + EDGE_MARGIN or person._mainBody.GetPosition().x < @_focusX - (EDGE_EXTENT + EDGE_MARGIN))
+      toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > @_focusX + EDGE_EXTENT or person._mainBody.GetPosition().x < @_focusX - EDGE_EXTENT)
 
       for person in toRemove
         @_personList.splice @_personList.indexOf(person), 1
         person.disconnectPhysics()
 
-        @_personList.push @_generatePerson(EDGE_EXTENT)
+        @_personList.push @_generatePerson(EDGE_EXTENT - EDGE_MARGIN)
     )
 
   _generatePerson: (setback)->

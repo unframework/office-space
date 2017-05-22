@@ -30,7 +30,7 @@ subtractAll = (shape, otherShapeList) ->
 class Building
   constructor: (leftX, rightX, frontY) ->
     width = rightX - leftX
-    depth = 8
+    depth = 12
 
     buildingColor = new color.HSL(0.05 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.15 + Math.random() * 0.1)
     windowColor = new color.HSL(0.1 + Math.random() * 0.2, 0.1 + Math.random() * 0.1, 0.05 + Math.random() * 0.05)
