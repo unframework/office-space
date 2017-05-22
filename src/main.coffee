@@ -4,34 +4,24 @@ vec4 = require('gl-matrix').vec4
 mat4 = require('gl-matrix').mat4
 color = require('onecolor')
 
+STREAM_WIDTH = 1280
+STREAM_HEIGHT = 720
+
 document.body.style.margin = '0'
 document.body.style.padding = '0'
 document.body.style.background = '#70787f'
-
-alignmentAid = document.createElement 'div'
-alignmentAid.style.display = 'inline-block'
-alignmentAid.style.verticalAlign = 'middle'
-alignmentAid.style.width = '0'
-alignmentAid.style.height = '100vh'
-
-container = document.createElement 'div'
-container.style.position = 'relative'
-container.style.display = 'inline-block'
-container.style.verticalAlign = 'middle'
-container.style.width = '100%'
-container.style.height = '0'
-container.style.paddingTop = '56.25%'
+document.body.style.position = 'relative'
 
 canvas = document.createElement 'canvas'
 canvas.style.position = 'absolute'
-canvas.style.top = 0
-canvas.style.left = 0
-canvas.style.width = '100%'
-canvas.style.height = '100%'
+canvas.style.top = '50vh'
+canvas.style.left = '50vw'
+canvas.style.marginTop = -STREAM_HEIGHT / 2 + 'px'
+canvas.style.marginLeft = -STREAM_WIDTH / 2 + 'px'
+canvas.style.width = STREAM_WIDTH + 'px'
+canvas.style.height = STREAM_HEIGHT + 'px'
 
-container.appendChild canvas
-document.body.appendChild alignmentAid
-document.body.appendChild container
+document.body.appendChild canvas
 
 canvas.width = canvas.offsetWidth
 canvas.height = canvas.offsetHeight
