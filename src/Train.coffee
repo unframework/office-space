@@ -15,6 +15,7 @@ paint = (shape, polyColor) ->
   for poly in shape.toPolygons()
     poly.shared = { color: rgb }
 
+# @todo make go in either direction (depending on bridge, too?)
 class Train
   constructor: (@_physicsStepDuration, @_offsetX, @_offsetY, @_offsetZ) ->
     @_speed = 30
@@ -41,7 +42,7 @@ class Train
     for i in [ 0...@_carCount ]
       @_carOffsetList[i] += @_speed * @_physicsStepDuration
 
-      if @_carOffsetList[i] > 200
-        @_carOffsetList[i] -= 400
+      if @_carOffsetList[i] > 400
+        @_carOffsetList[i] -= 800
 
 module.exports = Train

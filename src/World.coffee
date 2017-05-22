@@ -91,7 +91,7 @@ class World
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)
 
     new TimeStepper(STEP_TIME, () =>
-      @_focusX += STEP_TIME * 0.5
+      @_focusX += STEP_TIME * 0.2
       focusRightX = @_focusX + EDGE_EXTENT
       focusLeftX = @_focusX - EDGE_EXTENT
 
