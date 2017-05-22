@@ -12,7 +12,8 @@ FFMPEG="$HOME/Desktop/ffmpeg-3.3.1-win64-static/bin/ffmpeg"
 "$FFMPEG" \
     -f gdigrab -framerate "$FPS" -offset_x 0 -offset_y 0 -video_size 1280x720 -draw_mouse 0 \
     -i title="$WINDOW_TITLE" \
-    -i audio.wav \
+    -f concat -safe 0 \
+    -i audio-playlist.txt \
     -vsync 1 \
     -g $(($FPS * 2)) \
     -vcodec libx264 -pix_fmt yuv420p -preset ultrafast -crf 18 -r $FPS -maxrate 1984k \
