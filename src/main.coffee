@@ -77,6 +77,7 @@ CUBEWALL_HEIGHT = 1.2
 cameraPosition = vec3.create()
 camera = mat4.create()
 
+lightPosition = vec3.create()
 lightProjection = mat4.create()
 lightTransform = mat4.create()
 
@@ -202,11 +203,13 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateZ camera, camera, Math.PI / 4
   mat4.translate camera, camera, cameraPosition
 
-  mat4.ortho lightProjection, -12, 12, -12, 12, -12, 12
+  mat4.ortho lightProjection, -24, 24, -24, 24, -26, 6
 
+  vec3.set lightPosition, Math.round(-world._focusX / 4) * 4, 0, 0 # @todo figure out why this needs to be negated
   mat4.identity lightTransform
-  mat4.rotateX lightTransform, lightTransform, -0.3
+  mat4.rotateX lightTransform, lightTransform, -Math.PI / 8
   mat4.rotateZ lightTransform, lightTransform, -1 * Math.PI / 4
+  mat4.translate lightTransform, lightTransform, lightPosition
 
   vec3.set focusCenterPos, world._focusX, 0, 0
   mat4.identity focusCenter
