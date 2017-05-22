@@ -110,7 +110,7 @@ class TrainRenderer
     for model in @_modelList
       @_shape { model: model }, command
 
-tr = new TrainRenderer(world._train)
+tr = new TrainRenderer(world._bridge._train)
 
 class PersonRenderer
   constructor: ->

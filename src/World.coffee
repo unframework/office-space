@@ -12,7 +12,6 @@ TimeStepper = require('./TimeStepper.coffee')
 Bridge = require('./Bridge.coffee')
 Building = require('./Building.coffee')
 Person = require('./Person.coffee')
-Train = require('./Train.coffee')
 
 STEP_TIME = 0.02 # @todo smaller time step to avoid frame skip
 SLOW_FRACTION = 1
@@ -73,12 +72,10 @@ class World
     @_focusedBuildingList = []
     @_focusX = -0.1
 
-    @_bridge = new Bridge(4 + 0.2, 12 - 0.2, 0.5)
+    @_bridge = new Bridge(@_physicsStepDuration, 4 + 0.2, 12 - 0.2, 0.5)
 
     @_personList = for i in [ 0 ... 80 ]
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)
-
-    @_train = new Train(@_physicsStepDuration, 6, -100, 2.8)
 
     new TimeStepper(STEP_TIME, () =>
       newFocusX = @_focusX + STEP_TIME * 0.5
@@ -98,7 +95,7 @@ class World
       @_physicsWorld.Step(@_physicsStepDuration, 10, 10)
 
       person.onPhysicsStep() for person in @_personList
-      @_train.onPhysicsStep()
+      @_bridge.onPhysicsStep()
 
       toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > EDGE_EXTENT + EDGE_MARGIN or person._mainBody.GetPosition().x < -(EDGE_EXTENT + EDGE_MARGIN))
 
