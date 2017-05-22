@@ -77,7 +77,18 @@ world = new World(bumperList)
 
 buildingShapeList = []
 world.buildings.on 'data', (building) =>
-  buildingShapeList.push createCSGShape(regl, building._csg)
+  shape = createCSGShape(regl, building._csg)
+  shape._building = building
+
+  buildingShapeList.push shape
+
+world.buildingsOut.on 'data', (building) =>
+  [ shapeIndex ] = (shapeIndex for shape, shapeIndex in buildingShapeList when shape._building is building)
+
+  shape = buildingShapeList[shapeIndex]
+  buildingShapeList.splice shapeIndex, 1
+
+  shape.destroy()
 
 bridgeShape = createCSGShape(regl, world._bridge._csg)
 

@@ -104,6 +104,8 @@ class Building
 
     # console.log windowBoxList
 
+    @leftX = leftX
+    @rightX = rightX
     @_csg = coreShapeWithWindowsAndGallery
 
 module.exports = Building

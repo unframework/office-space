@@ -5,6 +5,7 @@ b2PolygonShape = require('box2dweb').Collision.Shapes.b2PolygonShape
 b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
 b2Body = require('box2dweb').Dynamics.b2Body
 
+EventEmitter = require('events').EventEmitter
 Readable = require('stream').Readable
 
 TimeStepper = require('./TimeStepper.coffee')
@@ -61,20 +62,16 @@ populateOrthoBumpers = (orthoBumperList, physicsWorld) ->
 
 class World
   constructor: (orthoBumperList) ->
-    @buildings = new Readable({ objectMode: true })
-    @buildings._read = () => {} # no-op, we just wait for data to come in
+    @buildings = new Readable({ objectMode: true, read: () => {} })
+    @buildingsOut = new Readable({ objectMode: true, read: () => {} })
 
     @_physicsWorld = new b2World(new b2Vec2(0, 0), true)
     @_physicsStepDuration = STEP_TIME * SLOW_FRACTION # @todo instead, divide the value passed into TimeStepper?
 
     populateOrthoBumpers orthoBumperList, @_physicsWorld
 
-    @buildings.push(building) for building in [
-      new Building(0, 4, 0)
-      new Building(-4, 0, 0)
-      new Building(-8, -4, 0)
-      new Building(-12, -8, 0)
-    ]
+    @_focusedBuildingList = []
+    @_focusX = -0.1
 
     @_bridge = new Bridge(4 + 0.2, 12 - 0.2, 0.5)
 
@@ -84,6 +81,20 @@ class World
     @_train = new Train(@_physicsStepDuration, 6, -100, 2.8)
 
     new TimeStepper(STEP_TIME, () =>
+      newFocusX = @_focusX + STEP_TIME * 0.5
+
+      if Math.floor(newFocusX / 4) isnt Math.floor(@_focusX / 4)
+        x = Math.round(@_focusX) - 12
+        building = new Building(x, x + 4, 0)
+
+        @_focusedBuildingList.push building
+        @buildings.push building
+
+        while @_focusedBuildingList[0].rightX <= x
+          @buildingsOut.push @_focusedBuildingList.shift()
+
+      @_focusX = newFocusX
+
       @_physicsWorld.Step(@_physicsStepDuration, 10, 10)
 
       person.onPhysicsStep() for person in @_personList
