@@ -180,7 +180,7 @@ class PersonRenderer
 pr = new PersonRenderer()
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 21, 21, -31 + 0.2 * Math.sin(time / 8)
+  vec3.set cameraPosition, 21 - world._focusX, 21, -31 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 50
   mat4.rotateX camera, camera, -Math.PI / 4

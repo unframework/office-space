@@ -72,6 +72,8 @@ class World
     populateOrthoBumpers orthoBumperList, @_physicsWorld
 
     @_focusedBuildingList = []
+    @_nextBuildingX = -12
+
     @_focusX = -0.1
 
     @_bridge = null
@@ -81,19 +83,24 @@ class World
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)
 
     new TimeStepper(STEP_TIME, () =>
-      newFocusX = @_focusX + STEP_TIME * 0.5
+      @_focusX += STEP_TIME * 0.5
+      focusRightX = @_focusX + 8
+      focusLeftX = @_focusX - 8
 
-      if Math.floor(newFocusX / 4) isnt Math.floor(@_focusX / 4)
-        x = Math.round(@_focusX) - 12
-        building = new Building(x, x + 4, 0)
+      # fill up buildings until next bridge
+      while @_nextBuildingX < focusRightX and @_nextBuildingX < @_nextBridgeX
+        building = new Building(@_nextBuildingX, @_nextBuildingX + 4, 0)
 
         @_focusedBuildingList.push building
         @buildings.push building
 
-        while @_focusedBuildingList[0].rightX <= x
-          @buildingsOut.push @_focusedBuildingList.shift()
+        @_nextBuildingX = building.rightX
 
-      if newFocusX + 12 > @_nextBridgeX
+      while @_focusedBuildingList[0].rightX < focusLeftX
+        @buildingsOut.push @_focusedBuildingList.shift()
+
+      # create next bridge
+      if @_nextBridgeX < focusRightX
         if @_bridge
           @bridgesOut.push @_bridge
           @_bridge = null
@@ -103,7 +110,8 @@ class World
 
         @_nextBridgeX += 32
 
-      @_focusX = newFocusX
+        # next building starts after bridge
+        @_nextBuildingX = @_bridge.rightX
 
       @_physicsWorld.Step(@_physicsStepDuration, 10, 10)
 
