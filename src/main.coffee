@@ -2,6 +2,7 @@ CSG = require('csg')
 vec3 = require('gl-matrix').vec3
 vec4 = require('gl-matrix').vec4
 mat4 = require('gl-matrix').mat4
+color = require('onecolor')
 
 document.body.style.margin = '0'
 document.body.style.padding = '0'
@@ -46,12 +47,25 @@ createCSGShape = require('./CSGShape.coffee')
 personShape = null
 require('./PersonShape.coffee')(regl).then (v) -> personShape = v
 
-groundShape = require('./GroundShape.coffee')(regl)
+paint = (shape, polyColor) ->
+  rgb = polyColor.rgb() # pre-optimize
 
-pavementShape = createCSGShape(regl, CSG.cube(
+  for poly in shape.toPolygons()
+    poly.shared = { color: rgb }
+
+groundCSG = CSG.cube(
+  center: [ 0, 0, -0.2 ]
+  radius: [ 12, 12, 0.1 ]
+)
+paint groundCSG, new color.HSL(0.6, 0.1, 0.05)
+
+pavementCSG = CSG.cube(
   center: [ 0, 2.5, -0.1 ]
   radius: [ 12, 5.5, 0.1 ]
-))
+)
+paint pavementCSG, new color.HSL(0, 0, 0.3)
+
+pavementShape = createCSGShape(regl, groundCSG.union(pavementCSG), true)
 
 debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
@@ -65,6 +79,9 @@ camera = mat4.create()
 
 lightProjection = mat4.create()
 lightTransform = mat4.create()
+
+focusCenterPos = mat4.create()
+focusCenter = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
@@ -196,18 +213,16 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
   mat4.rotateX lightTransform, lightTransform, -0.3
   mat4.rotateZ lightTransform, lightTransform, -1 * Math.PI / 4
 
+  vec3.set focusCenterPos, world._focusX, 0, 0
+  mat4.identity focusCenter
+  mat4.translate focusCenter, focusCenter, focusCenterPos
+
   regl.clear
     color: [ 1, 1, 1, 1 ]
     depth: 1
 
   renderClayScene camera, lightProjection, lightTransform, (render, renderNonShadowing) ->
-    groundShape
-      z: -0.1
-      colorA: [ 0.05, 0.05, 0.07, 1 ]
-      colorB: [ 0.07, 0.07, 0.09, 1 ]
-    , renderNonShadowing
-
-    pavementShape render
+    pavementShape { model: focusCenter }, renderNonShadowing
 
     for bridgeShape in bridgeShapeList
       bridgeShape render
