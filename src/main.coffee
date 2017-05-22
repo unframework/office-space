@@ -85,12 +85,7 @@ focusCenter = mat4.create()
 
 renderClayScene = new ClayRenderer regl
 
-WALKWAY_MARGIN = 0.2
-bumperList = [
-  [ -12, -WALKWAY_MARGIN, 12, -WALKWAY_MARGIN ]
-  [ -12, -4, 12, -3 + WALKWAY_MARGIN ]
-]
-world = new World(bumperList)
+world = new World()
 
 buildingShapeList = []
 world.buildings.on 'data', (building) =>

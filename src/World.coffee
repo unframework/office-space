@@ -47,20 +47,27 @@ populateOrthoBumpers = (orthoBumperList, physicsWorld) ->
   bodyDef.position.x = 0
   bodyDef.position.y = 0
 
+  bumperBody = physicsWorld.CreateBody(bodyDef)
+
   for ortho in orthoBumperList
     w = ortho[2] - ortho[0]
     h = ortho[3] - ortho[1]
 
-    bodyDef.position.x = ortho[0] + w / 2
-    bodyDef.position.y = ortho[1] + h / 2
+    pos = new b2Vec2(ortho[0] + w / 2, ortho[1] + h / 2)
+    fixDef.shape.SetAsOrientedBox(w / 2, h / 2, pos, 0)
 
-    fixDef.shape.SetAsBox(w / 2, h / 2)
-
-    bumperBody = physicsWorld.CreateBody(bodyDef)
     bumperBody.CreateFixture(fixDef)
 
+  bumperBody
+
+WALKWAY_MARGIN = 0.2
+orthoBumperList = [
+  [ -12, -WALKWAY_MARGIN, 12, 1 + WALKWAY_MARGIN ]
+  [ -12, -4, 12, -3 + WALKWAY_MARGIN ]
+]
+
 class World
-  constructor: (orthoBumperList) ->
+  constructor: () ->
     @buildings = new Readable({ objectMode: true, read: () => {} })
     @buildingsOut = new Readable({ objectMode: true, read: () => {} })
     @bridges = new Readable({ objectMode: true, read: () => {} })
@@ -69,7 +76,8 @@ class World
     @_physicsWorld = new b2World(new b2Vec2(0, 0), true)
     @_physicsStepDuration = STEP_TIME * SLOW_FRACTION # @todo instead, divide the value passed into TimeStepper?
 
-    populateOrthoBumpers orthoBumperList, @_physicsWorld
+    @_bumperBody = populateOrthoBumpers orthoBumperList, @_physicsWorld
+    bumperBodyPos = new b2Vec2() # for dynamic updates
 
     @_focusedBuildingList = []
     @_nextBuildingX = -12
@@ -86,6 +94,9 @@ class World
       @_focusX += STEP_TIME * 0.5
       focusRightX = @_focusX + 8
       focusLeftX = @_focusX - 8
+
+      bumperBodyPos.Set @_focusX, 0
+      @_bumperBody.SetPosition bumperBodyPos
 
       # fill up buildings until next bridge
       while @_nextBuildingX < focusRightX and @_nextBuildingX < @_nextBridgeX
@@ -120,7 +131,7 @@ class World
       if @_bridge
         @_bridge.onPhysicsStep()
 
-      toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > EDGE_EXTENT + EDGE_MARGIN or person._mainBody.GetPosition().x < -(EDGE_EXTENT + EDGE_MARGIN))
+      toRemove = (person for person in @_personList when person._mainBody.GetPosition().x > @_focusX + EDGE_EXTENT + EDGE_MARGIN or person._mainBody.GetPosition().x < @_focusX - (EDGE_EXTENT + EDGE_MARGIN))
 
       for person in toRemove
         @_personList.splice @_personList.indexOf(person), 1
@@ -133,8 +144,8 @@ class World
     across = 0.5 + Math.random() * 2
 
     if Math.random() > 0.5
-      new Person(@_physicsStepDuration, @_physicsWorld, -setback, -across, createSimpleRouter(Math.random() > 0.5))
+      new Person(@_physicsStepDuration, @_physicsWorld, @_focusX - setback, -across, createSimpleRouter(Math.random() > 0.5))
     else
-      new Person(@_physicsStepDuration, @_physicsWorld, setback, -across, createSimpleRouter(Math.random() > 0.5))
+      new Person(@_physicsStepDuration, @_physicsWorld, @_focusX + setback, -across, createSimpleRouter(Math.random() > 0.5))
 
 module.exports = World
