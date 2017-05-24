@@ -5,7 +5,8 @@ b2PolygonShape = require('box2dweb').Collision.Shapes.b2PolygonShape
 b2BodyDef = require('box2dweb').Dynamics.b2BodyDef
 b2Body = require('box2dweb').Dynamics.b2Body
 
-EventEmitter = require('events').EventEmitter
+Howl = require('howler').Howl
+
 Readable = require('stream').Readable
 
 TimeStepper = require('./TimeStepper.coffee')
@@ -18,6 +19,11 @@ SLOW_FRACTION = 1
 
 EDGE_EXTENT = 20
 EDGE_MARGIN = 1 # to avoid immediate de-spawn when right next to the edge
+
+# looping city sound
+cityLoopHowl = new Howl({
+  src: ['./src/city-loop.wav']
+})
 
 # @todo use again later
 # createCornerRouter = (flowIsOpposite) ->
@@ -68,6 +74,10 @@ orthoBumperList = [
 
 class World
   constructor: () ->
+    # ambient base loop
+    @_cityLoopSound = cityLoopHowl.play()
+    cityLoopHowl.loop true, @_cityLoopSound
+
     @_focusX = 0
 
     @buildings = new Readable({ objectMode: true, read: () => {} })
