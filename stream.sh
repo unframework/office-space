@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 # Chrome should be run as:
-# /c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe --kiosk --user-data-dir=chrome-user-data --no-first-run http://localhost:9966
+# /c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe --kiosk --user-data-dir=chrome-user-data --no-first-run http://unframework.github.io/office-space
 
 FPS="30"
 YOUTUBE_URL="rtmp://a.rtmp.youtube.com/live2"
