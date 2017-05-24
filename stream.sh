@@ -5,7 +5,7 @@
 
 FPS="30"
 YOUTUBE_URL="rtmp://a.rtmp.youtube.com/live2"
-WINDOW_TITLE='budo - Google Chrome'
+WINDOW_TITLE='OFFICE-SPACE 3D VIEWPORT - Google Chrome'
 AUDIO_TITLE='Stereo Mix (Realtek High Definition Audio)'
 FFMPEG="$HOME/Desktop/ffmpeg-3.3.1-win64-static/bin/ffmpeg"
 

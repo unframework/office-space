@@ -7,6 +7,8 @@ color = require('onecolor')
 STREAM_WIDTH = 1280
 STREAM_HEIGHT = 720
 
+document.title = 'OFFICE-SPACE 3D VIEWPORT'
+
 document.body.style.margin = '0'
 document.body.style.padding = '0'
 document.body.style.background = '#70787f'
