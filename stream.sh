@@ -9,17 +9,17 @@ WINDOW_TITLE='OFFICE-SPACE 3D VIEWPORT - Google Chrome'
 AUDIO_TITLE='Stereo Mix (Realtek High Definition Audio)'
 FFMPEG="$HOME/Desktop/ffmpeg-3.3.1-win64-static/bin/ffmpeg"
 
-# @todo loop audio or get it from desktop
 "$FFMPEG" \
-    -f gdigrab -framerate "$FPS" -offset_x 0 -offset_y 0 -video_size 1280x720 -draw_mouse 0 \
-    -i title="$WINDOW_TITLE" \
+    -rtbufsize 10M \
     -f dshow \
     -i "audio=$AUDIO_TITLE" \
-    -vsync 1 \
+    -f gdigrab -framerate "$FPS" -offset_x 0 -offset_y 0 -video_size 1280x720 -draw_mouse 0 \
+    -i title="$WINDOW_TITLE" \
+    -vsync 2 \
     -g $(($FPS * 2)) \
-    -vcodec libx264 -pix_fmt yuv420p -preset ultrafast -crf 18 -r $FPS -maxrate 1984k \
+    -vcodec libx264 -pix_fmt yuv420p -preset ultrafast -crf 18 -r $FPS -maxrate 2500k \
     -acodec libmp3lame -ar 44100 -b:a 712000 \
-    -bufsize 3968k \
+    -bufsize 4M \
     -threads 2 \
     -f flv \
     "$YOUTUBE_URL/$KEY"
