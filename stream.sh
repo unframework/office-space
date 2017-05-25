@@ -17,10 +17,9 @@ FFMPEG="$HOME/Desktop/ffmpeg-3.3.1-win64-static/bin/ffmpeg"
     -i title="$WINDOW_TITLE" \
     -vsync 2 \
     -g $(($FPS * 2)) \
-    -vcodec libx264 -pix_fmt yuv420p -preset ultrafast -crf 18 -r $FPS -maxrate 2500k \
-    -acodec libmp3lame -ar 44100 -b:a 712000 \
+    -vcodec libx264 -pix_fmt yuv444p -preset ultrafast -crf 18 -r $FPS -maxrate 2500k \
+    -acodec libmp3lame -ac 1 -ar 44100 -b:a 512000 \
     -bufsize 4M \
-    -threads 2 \
     -f flv \
     "$YOUTUBE_URL/$KEY"
 
