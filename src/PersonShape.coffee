@@ -85,7 +85,7 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
         frag: '''
           precision mediump float;
 
-          const float eyeBottom = 0.4;
+          const float eyeBottom = 0.38;
 
           uniform float eyesOpenRatio;
           uniform float gazeOffsetX;
@@ -102,13 +102,13 @@ module.exports = (regl) -> new Promise (resolve) -> parseOBJ createReadableFromD
           }
 
           vec4 clayPigment() {
-            float eyeTop = eyeBottom + eyesOpenRatio * 0.08;
+            float eyeTop = eyeBottom + eyesOpenRatio * 0.12;
             float eyeOffsetX = gazeOffsetX * 0.05;
 
-            float eye1 = step(0.2 + eyeOffsetX, fUV.x) * step(fUV.x, 0.32 + eyeOffsetX) * step(eyeBottom, fUV.y) * step(fUV.y, eyeTop);
-            float eye2 = step(0.68 + eyeOffsetX, fUV.x) * step(fUV.x, 0.8 + eyeOffsetX) * step(eyeBottom, fUV.y) * step(fUV.y, eyeTop);
+            float eye1 = step(0.18 + eyeOffsetX, fUV.x) * step(fUV.x, 0.36 + eyeOffsetX) * step(eyeBottom, fUV.y) * step(fUV.y, eyeTop);
+            float eye2 = step(0.64 + eyeOffsetX, fUV.x) * step(fUV.x, 0.82 + eyeOffsetX) * step(eyeBottom, fUV.y) * step(fUV.y, eyeTop);
             float val = eye1 + eye2;
-            return (0.25 + 0.75 * vec4(vec3(1.0 - val), 1)) * fColor;
+            return (0.2 + 0.8 * vec4(vec3(1.0 - val), 1)) * fColor;
           }
 
           #pragma glslify: export(claySetup)
