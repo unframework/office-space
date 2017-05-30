@@ -18,7 +18,7 @@ FFMPEG="$HOME/Desktop/ffmpeg-3.3.1-win64-static/bin/ffmpeg"
     -i title="$WINDOW_TITLE" \
     -vsync 2 \
     -g $(($FPS * 2)) \
-    -vcodec libx264 -pix_fmt yuv444p -preset ultrafast -crf 18 -r $FPS -maxrate 2500k \
+    -vcodec libx264 -pix_fmt yuv444p -preset ultrafast -crf 10 -r $FPS -maxrate 2500k \
     -acodec libmp3lame -ac 1 -ar 44100 -q:a 0 \
     -bufsize 4M \
     -f flv \
