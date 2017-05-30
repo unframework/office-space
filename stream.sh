@@ -1,5 +1,6 @@
 #!/bin/bash -ex
 
+# @todo use 96k in the stereo mix device settings so that downsampling here would not be as bad
 # Chrome should be run as:
 # /c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe --kiosk --user-data-dir=chrome-user-data --no-first-run http://unframework.github.io/office-space
 
