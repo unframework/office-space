@@ -4,8 +4,8 @@ vec4 = require('gl-matrix').vec4
 mat4 = require('gl-matrix').mat4
 color = require('onecolor')
 
-STREAM_WIDTH = 1280
-STREAM_HEIGHT = 720
+STREAM_WIDTH = 854
+STREAM_HEIGHT = 480
 
 document.title = 'OFFICE-SPACE 3D VIEWPORT'
 

@@ -2,8 +2,9 @@
 
 # @todo use 96k in the stereo mix device settings so that downsampling here would not be as bad
 # Chrome should be run as:
-# /c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe --kiosk --user-data-dir=chrome-user-data --no-first-run http://unframework.github.io/office-space
+# /c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe --kiosk --user-data-dir=chrome-user-data --no-first-run http://localhost:9966
 
+SIZE="854x480"
 FPS="30"
 YOUTUBE_URL="rtmp://a.rtmp.youtube.com/live2"
 WINDOW_TITLE='OFFICE-SPACE 3D VIEWPORT - Google Chrome'
@@ -14,7 +15,7 @@ FFMPEG="$HOME/Desktop/ffmpeg-3.3.1-win64-static/bin/ffmpeg"
     -rtbufsize 10M \
     -f dshow \
     -i "audio=$AUDIO_TITLE" \
-    -f gdigrab -framerate "$FPS" -offset_x 0 -offset_y 0 -video_size 1280x720 -draw_mouse 0 \
+    -f gdigrab -framerate "$FPS" -offset_x 0 -offset_y 0 -video_size "$SIZE" -draw_mouse 0 \
     -i title="$WINDOW_TITLE" \
     -vsync 2 \
     -g $(($FPS * 2)) \
