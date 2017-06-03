@@ -153,7 +153,7 @@ class World
   _generatePerson: (setback)->
     across = 0.5 + Math.random() * 2
 
-    if Math.random() > 0.5
+    if Math.random() > 0.6 # skew probability because folks walking in camera pan direction stay on screen longer
       new Person(@_physicsStepDuration, @_physicsWorld, @_focusX - setback, -across, createSimpleRouter(Math.random() > 0.5))
     else
       new Person(@_physicsStepDuration, @_physicsWorld, @_focusX + setback, -across, createSimpleRouter(Math.random() > 0.5))

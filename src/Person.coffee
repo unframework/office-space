@@ -17,7 +17,7 @@ class Person
     @_color = new color.HSL(0.9 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.2 + Math.random() * 0.6).rgb()
     @_color2 = @_color.hue(0.08, true).saturation(-0.4, true).lightness(0.1 + Math.random() * 0.1)
 
-    @_nominalSpeed = 0.3 + Math.random() * 0.3
+    @_nominalSpeed = 0.3 + Math.random() * 0.2
 
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
