@@ -35,7 +35,11 @@ while true; do
         -f flv \
         "$YOUTUBE_URL/$KEY" \
         2>&1 \
-        || echo "FFmpeg exit code: $?") | tail -c 10000 > "$logFile"
+        || (
+            # save ffmpeg code first since $? is clobbered after date call
+            code=$?; echo "FFmpeg exit code at `date -u +%Y%m%dT%H%M%SZ`: $code"
+        )
+    ) | tail -c 10000 > "$logFile"
 
     echo "  output log file: $logFile"
     echo
