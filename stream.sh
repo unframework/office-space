@@ -30,8 +30,8 @@ while true; do
         -i title="$WINDOW_TITLE" \
         -vsync 2 \
         -g $(($FPS * 2)) \
-        -vcodec libx264 -pix_fmt yuv444p -preset ultrafast -crf 10 -r $FPS -maxrate 2500k \
-        -acodec libmp3lame -ac 1 -ar 44100 -q:a 0 \
+        -vcodec libx264 -pix_fmt yuv444p -preset fast -crf 20 -r $FPS -maxrate 2500k \
+        -acodec libmp3lame -ac 1 -ar 44100 -q:a 3 \
         -bufsize 4M \
         -f flv \
         "$YOUTUBE_URL/$KEY" \
