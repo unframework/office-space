@@ -4,7 +4,10 @@
 # Chrome should be run as:
 # /c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe --kiosk --user-data-dir=chrome-user-data --no-first-run http://localhost:9966
 
+DIR="$( cd "$(dirname "$0")" && pwd )"
+LOG_DIR="$DIR/log"
 RESTART_SLEEP=20
+
 SIZE="854x480"
 FPS="30"
 YOUTUBE_URL="rtmp://a.rtmp.youtube.com/live2"
@@ -12,8 +15,13 @@ WINDOW_TITLE='OFFICE-SPACE 3D VIEWPORT - Google Chrome'
 AUDIO_TITLE='Stereo Mix (Realtek High Definition Audio)'
 FFMPEG="$HOME/Desktop/ffmpeg-3.3.1-win64-static/bin/ffmpeg"
 
+mkdir -p "$LOG_DIR"
+
 while true; do
-    "$FFMPEG" \
+    echo '==== starting FFmpeg...'
+
+    logFile="$LOG_DIR/ffmpeg-tail-`date -u +%Y%m%d%H%M%Sz`.txt"
+    ("$FFMPEG" \
         -rtbufsize 10M \
         -f dshow \
         -i "audio=$AUDIO_TITLE" \
@@ -26,11 +34,14 @@ while true; do
         -bufsize 4M \
         -f flv \
         "$YOUTUBE_URL/$KEY" \
-        || echo "FFmpeg exit code: $?"
+        2>&1 \
+        || echo "FFmpeg exit code: $?") | tail -c 10000 > "$logFile"
 
+    echo "  output log file: $logFile"
     echo
+
     echo "==== auto restarting FFmpeg after $RESTART_SLEEP seconds ===="
     sleep "$RESTART_SLEEP"
-    echo 'finished delay, restarting...'
+    echo '  finished delay'
     echo
 done
