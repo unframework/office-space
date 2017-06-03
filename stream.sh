@@ -18,9 +18,10 @@ FFMPEG="$HOME/Desktop/ffmpeg-3.3.1-win64-static/bin/ffmpeg"
 mkdir -p "$LOG_DIR"
 
 while true; do
+    logFile="$LOG_DIR/ffmpeg-tail-`date -u +%Y%m%d%H%M%Sz`.txt"
+
     echo '==== starting FFmpeg...'
 
-    logFile="$LOG_DIR/ffmpeg-tail-`date -u +%Y%m%d%H%M%Sz`.txt"
     ("$FFMPEG" \
         -rtbufsize 10M \
         -f dshow \
