@@ -35,6 +35,7 @@ regl = require('regl')
 World = require('./World.coffee')
 ClayRenderer = require('./ClayRenderer.coffee')
 createCSGShape = require('./CSGShape.coffee')
+autorestart = require('./autorestart.coffee')
 
 personShape = null
 require('./PersonShape.coffee')(regl).then (v) -> personShape = v
@@ -226,3 +227,6 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
       pr.draw render
+
+# auto reload page because sounds seem to cut out after ~24hr
+autorestart(86400 * 1000)
