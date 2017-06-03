@@ -32,7 +32,13 @@ class Building
     width = rightX - leftX
     depth = 12
 
-    buildingColor = new color.HSL(0.0 + Math.random() * 0.65, 0.2 + Math.random() * 0.1, 0.25 + Math.random() * 0.4)
+    isHighlight = Math.random() < 0.2
+
+    buildingColor = if isHighlight
+      new color.HSL(-0.1 + Math.random() * 0.7, 0.7 + Math.random() * 0.2, 0.15 + Math.random() * 0.2)
+    else
+      new color.HSL(0.0 + Math.random() * 0.65, 0.2 + Math.random() * 0.1, 0.25 + Math.random() * 0.4)
+
     windowColor = new color.HSL(0.1 + Math.random() * 0.2, 0.1 + Math.random() * 0.1, 0.05 + Math.random() * 0.05)
     galleryPillarColor = windowColor.lightness(-0.04, true)
 
