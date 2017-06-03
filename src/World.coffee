@@ -17,7 +17,7 @@ Person = require('./Person.coffee')
 STEP_TIME = 0.02 # @todo smaller time step to avoid frame skip
 SLOW_FRACTION = 1
 
-EDGE_EXTENT = 20
+EDGE_EXTENT = 16
 EDGE_MARGIN = 1 # to avoid immediate de-spawn when right next to the edge
 
 # looping city sound
@@ -101,7 +101,7 @@ class World
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)
 
     new TimeStepper(STEP_TIME, () =>
-      @_focusX += STEP_TIME * 0.2
+      @_focusX += STEP_TIME * 0.12
       focusRightX = @_focusX + EDGE_EXTENT
       focusLeftX = @_focusX - EDGE_EXTENT
 

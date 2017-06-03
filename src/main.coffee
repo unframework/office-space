@@ -188,14 +188,14 @@ class PersonRenderer
 pr = new PersonRenderer()
 
 regl.frame ({ time, viewportWidth, viewportHeight }) ->
-  vec3.set cameraPosition, 21 - world._focusX, 21, -31 + 0.2 * Math.sin(time / 8)
+  vec3.set cameraPosition, 14 - world._focusX, 14, -20 + 0.2 * Math.sin(time / 8)
 
   mat4.perspective camera, 0.3, viewportWidth / viewportHeight, 1, 80
   mat4.rotateX camera, camera, -Math.PI / 4
   mat4.rotateZ camera, camera, Math.PI / 4
   mat4.translate camera, camera, cameraPosition
 
-  mat4.ortho lightProjection, -24, 24, -24, 24, -26, 6
+  mat4.ortho lightProjection, -20, 20, -20, 20, -26, 6
 
   vec3.set lightPosition, Math.round(-world._focusX / 4) * 4, 0, 0 # @todo figure out why this needs to be negated
   mat4.identity lightTransform
