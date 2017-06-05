@@ -108,10 +108,50 @@ class Building
       galleryPillarBoxList
     )
 
+    signageList = []
+
+    if Math.random() < 0.3
+      marqueeBottom = galleryTopHeight
+      marqueeHeight = floorHeight + windowSillHeight - marqueeBottom
+
+      marqueeBox = CSG.cube(
+        center: [ leftX + width / 2, frontY + 0.049, marqueeBottom + marqueeHeight / 2 ]
+        radius: [ width / 2 - windowSideOffset, 0.05, marqueeHeight / 2 - 0.1 ]
+      )
+      paint marqueeBox, new color.HSL(
+        buildingColor.hue() + 0.2 + Math.random() * 0.6, # avoid building hue
+        0.9 + Math.random() * 0.1,
+        buildingColor.lightness() - 0.05 - Math.random() * 0.1) # always darker than building
+
+      signageList.push marqueeBox
+
+    if Math.random() < 0.3
+      galleryBannerBottom = randomAmount(0.2, 0.4, 0.02)
+      galleryBannerHeight = galleryTopHeight - randomAmount(0.2, galleryBannerBottom, 0.02) - galleryBannerBottom
+
+      galleryBannerPanelIndex = Math.floor(Math.random() * panelCount)
+      galleryBannerSideOffset = randomAmount(0.05, 0.25, 0.02)
+
+      galleryBannerLeftEdge = if galleryBannerPanelIndex is 0 then windowSideOffset else galleryPillarRadius
+      galleryBannerRightEdge = if galleryBannerPanelIndex is panelCount - 1 then windowSideOffset else galleryPillarRadius
+      galleryBannerWidth = panelWidth - galleryBannerLeftEdge - galleryBannerRightEdge - galleryBannerSideOffset * 2
+      galleryBannerCenter = leftX + panelWidth * galleryBannerPanelIndex + panelWidth / 2 + (galleryBannerLeftEdge - galleryBannerRightEdge) / 2
+
+      galleryBannerBox = CSG.cube(
+        center: [ galleryBannerCenter, galleryDepth + 0.049, galleryBannerBottom + galleryBannerHeight / 2 ]
+        radius: [ galleryBannerWidth / 2, 0.05, galleryBannerHeight / 2 ]
+      )
+      paint galleryBannerBox, new color.HSL(
+        buildingColor.hue() + 0.2 + Math.random() * 0.6, # avoid building hue
+        0.6 + Math.random() * 0.2,
+        windowColor.lightness() + Math.random() * 0.1) # lighter than windows
+
+      signageList.push galleryBannerBox
+
     # console.log windowBoxList
 
     @leftX = leftX
     @rightX = rightX
-    @_csg = coreShapeWithWindowsAndGallery
+    @_csg = unionAll coreShapeWithWindowsAndGallery, signageList
 
 module.exports = Building
