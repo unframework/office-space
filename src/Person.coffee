@@ -14,10 +14,15 @@ FOOT_OFFSET = 0.08
 # @todo head-bob and better phase of lean-angle
 class Person
   constructor: (@_physicsStepDuration, @_physicsWorld, x, y, @_routerCallback) ->
-    @_color = new color.HSL(0.9 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.2 + Math.random() * 0.6).rgb()
+    @_isBusy = Math.random() < 0.005
+
+    @_color = if @_isBusy
+      new color.HSL(0.0 + Math.random() * 0.01, 0.9 + Math.random() * 0.02, 0.3 + Math.random() * 0.1).rgb()
+    else
+      new color.HSL(0.9 + Math.random() * 0.6, 0.6 + Math.random() * 0.2, 0.2 + Math.random() * 0.6).rgb()
     @_color2 = @_color.hue(0.08, true).saturation(-0.4, true).lightness(0.1 + Math.random() * 0.1)
 
-    @_nominalSpeed = 0.3 + Math.random() * 0.2
+    @_nominalSpeed = if @_isBusy then 1.2 + Math.random() * 0.1 else 0.3 + Math.random() * 0.2
 
     fixDef = new b2FixtureDef()
     fixDef.density = 200.0
@@ -37,7 +42,13 @@ class Person
     @_mainBody.SetAngularDamping(1.8)
     @_mainBody.__person = this
 
-    @_walkTracker = new WalkCycleTracker(@_physicsStepDuration, @_mainBody, FOOT_OFFSET, 0.5 - @_nominalSpeed * 0.15 - Math.random() * 0.1, 0.05 + Math.random() * 0.05)
+    @_walkTracker = new WalkCycleTracker(
+      @_physicsStepDuration,
+      @_mainBody,
+      FOOT_OFFSET,
+      (if @_isBusy then -0.05 else 0) + (0.5 - @_nominalSpeed * 0.15 - Math.random() * 0.1),
+      (if @_isBusy then 0.3 else 0) + (0.05 + Math.random() * 0.05)
+    )
 
     @_orientationAngle = bodyDef.angle
     @_leanAngle = 0
@@ -99,7 +110,8 @@ class Person
       @_avoidanceGoLeft = false
       @_avoidanceGoRight = false
       @_avoidanceGoSlow = false
-      @_physicsWorld.RayCast(
+
+      if not @_isBusy then @_physicsWorld.RayCast(
         (fixture, point, outputNormal, fraction) =>
           person = fixture.GetBody().__person
 
@@ -139,7 +151,8 @@ class Person
     else
       @_nominalSpeed
 
-    diff = b2Math.Clamp(targetVel - vel, -0.3, 0.3)
+    diffMax = if @_isBusy then 0.6 else 0.3
+    diff = b2Math.Clamp(targetVel - vel, -diffMax, diffMax)
 
     @_debugTargetAngle = targetAngle
 
