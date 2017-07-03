@@ -28,7 +28,7 @@ subtractAll = (shape, otherShapeList) ->
 # @todo doodads (AC, rooftop gribble, newspaper stands, vending machines)
 # @todo ad space, signs
 class Building
-  constructor: (leftX, rightX, frontY) ->
+  constructor: (leftX, rightX, frontY, requiresTicker) ->
     width = rightX - leftX
     depth = 12
 
@@ -126,7 +126,7 @@ class Building
 
       signageList.push marqueeBox
 
-    if true
+    if requiresTicker
       tickerPanelIndex = Math.floor(Math.random() * panelCount)
       tickerSideOffset = randomAmount(0.05, 0.25, 0.02)
       tickerLeftEdge = if tickerPanelIndex is 0 then windowSideOffset else galleryPillarRadius
