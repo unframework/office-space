@@ -26,6 +26,7 @@
     "glslify": "^6.0.1",
     "glslify-bundle": "^5.0.0",
     "howler": "^2.0.3",
+    "moment": "^2.18.1",
     "onecolor": "^3.0.4",
     "parse-obj": "0.0.0",
     "regl": "^1.3.0"

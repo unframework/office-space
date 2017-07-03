@@ -64,6 +64,9 @@ debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
 debugRayXRayShape = require('./DebugRayShape.coffee')(regl, true)
 
+screenTest = null
+require('./ScreenShape.coffee')(regl).then (v) -> screenTest = v
+
 CUBEWALL_THICKNESS = 0.04
 CUBEWALL_HEIGHT = 1.2
 
@@ -227,6 +230,9 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
       pr.draw render
+
+    if screenTest
+      screenTest {}, render
 
 # auto reload page because sounds seem to cut out after ~24hr
 autorestart(86400 * 1000)
