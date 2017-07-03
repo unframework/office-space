@@ -108,6 +108,7 @@ class Building
       galleryPillarBoxList
     )
 
+    tickerList = []
     signageList = []
 
     if Math.random() < 0.3
@@ -125,7 +126,21 @@ class Building
 
       signageList.push marqueeBox
 
-    if Math.random() < 0.3
+    if true
+      tickerPanelIndex = Math.floor(Math.random() * panelCount)
+      tickerSideOffset = randomAmount(0.05, 0.25, 0.02)
+      tickerLeftEdge = if tickerPanelIndex is 0 then windowSideOffset else galleryPillarRadius
+      tickerRightEdge = if tickerPanelIndex is panelCount - 1 then windowSideOffset else galleryPillarRadius
+      tickerWidth = panelWidth - tickerLeftEdge - tickerRightEdge - tickerSideOffset * 2
+      tickerCenter = leftX + panelWidth * tickerPanelIndex + panelWidth / 2 + (tickerLeftEdge - tickerRightEdge) / 2
+      tickerHeight = (1 + randomAmount(0.2, 0.4, 0.05)) * tickerWidth / 4
+      tickerTopOffset = randomAmount(0.05, 0.2, 0.02)
+
+      tickerList.push [
+        [ tickerCenter, galleryDepth - 0.01, galleryTopHeight - tickerTopOffset - tickerHeight / 2 ]
+        [ tickerWidth / 2, tickerHeight / 2 ]
+      ]
+    else if Math.random() < 0.3
       galleryBannerBottom = randomAmount(0.2, 0.4, 0.02)
       galleryBannerHeight = galleryTopHeight - randomAmount(0.2, galleryBannerBottom, 0.02) - galleryBannerBottom
 
@@ -152,6 +167,7 @@ class Building
 
     @leftX = leftX
     @rightX = rightX
+    @tickerList = tickerList
     @_csg = unionAll coreShapeWithWindowsAndGallery, signageList
 
 module.exports = Building
