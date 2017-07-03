@@ -97,6 +97,8 @@ class World
     @_bridge = null
     @_nextBridgeX = 4
 
+    @_nextTickerX = -8
+
     @_personList = for i in [ 0 ... 80 ]
       @_generatePerson(Math.random() * (EDGE_EXTENT + 0.5) - 0.5)
 
@@ -110,7 +112,11 @@ class World
 
       # fill up buildings until next bridge
       while @_nextBuildingX < focusRightX and @_nextBuildingX < @_nextBridgeX
-        building = new Building(@_nextBuildingX, @_nextBuildingX + 4, 0)
+        requiresTicker = @_nextBuildingX >= @_nextTickerX
+        if requiresTicker
+          @_nextTickerX += 14
+
+        building = new Building(@_nextBuildingX, @_nextBuildingX + 4, 0, requiresTicker)
 
         @_focusedBuildingList.push building
         @buildings.push building

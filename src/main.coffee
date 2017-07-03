@@ -1,4 +1,5 @@
 CSG = require('csg')
+vec2 = require('gl-matrix').vec2
 vec3 = require('gl-matrix').vec3
 vec4 = require('gl-matrix').vec4
 mat4 = require('gl-matrix').mat4
@@ -64,6 +65,9 @@ debugTargetShape = require('./DebugTargetShape.coffee')(regl)
 debugTargetXRayShape = require('./DebugTargetShape.coffee')(regl, true)
 debugRayXRayShape = require('./DebugRayShape.coffee')(regl, true)
 
+screenShape = null
+require('./ScreenShape.coffee')(regl).then (v) -> screenShape = v
+
 CUBEWALL_THICKNESS = 0.04
 CUBEWALL_HEIGHT = 1.2
 
@@ -82,11 +86,20 @@ renderClayScene = new ClayRenderer regl
 world = new World()
 
 buildingShapeList = []
+tickerList = []
+
 world.buildings.on 'data', (building) =>
   shape = createCSGShape(regl, building._csg)
   shape._building = building
 
   buildingShapeList.push shape
+
+  tickerList = tickerList.concat building.tickerList.map (ticker) ->
+    {
+      building: building
+      center: vec3.fromValues(ticker[0][0], ticker[0][1], ticker[0][2])
+      radius: vec2.fromValues(ticker[1][0], ticker[1][1])
+    }
 
 world.buildingsOut.on 'data', (building) =>
   [ shapeIndex ] = (shapeIndex for shape, shapeIndex in buildingShapeList when shape._building is building)
@@ -95,6 +108,13 @@ world.buildingsOut.on 'data', (building) =>
   buildingShapeList.splice shapeIndex, 1
 
   shape.destroy()
+
+  tickerIndexList = (tickerIndex for ticker, tickerIndex in tickerList when ticker.building is building)
+
+  # process from last to first, to avoid problems when splicing
+  tickerIndexList.reverse()
+  for tickerIndex in tickerIndexList
+    tickerList.splice tickerIndex, 1
 
 class TrainRenderer
   constructor: (@_train) ->
@@ -227,6 +247,9 @@ regl.frame ({ time, viewportWidth, viewportHeight }) ->
     if personShape then personShape world._personList, (ctx, props) ->
       pr.update props
       pr.draw render
+
+    if screenShape
+      screenShape tickerList, render
 
 # auto reload page because sounds seem to cut out after ~24hr
 autorestart(86400 * 1000)
