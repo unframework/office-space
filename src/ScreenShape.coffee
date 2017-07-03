@@ -3,33 +3,33 @@ moment = require('moment')
 PIXEL_WIDTH = 32
 PIXEL_HEIGHT = 8
 
-svgData = '''
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="''' + PIXEL_WIDTH + '''" height="''' + PIXEL_HEIGHT + '''" viewBox="0 0 128 32"
-  text-rendering="optimizeLegibility"
->
-  <rect x="0" y="0" width="100%" height="100%" fill="black" />
-  <text
-    x="64" y="28"
-    font-family="Courier New"
-    font-size="40"
-    font-weight="bold"
-    fill="red"
-    text-anchor="middle"
+loadImage = (isOn) ->
+  svgData = '''
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="''' + PIXEL_WIDTH + '''" height="''' + PIXEL_HEIGHT + '''" viewBox="0 0 128 32"
+    text-rendering="optimizeLegibility"
   >
-    ''' + moment().format('HH:mm') + '''
-  </text>
-</svg>
-'''
+    <rect x="0" y="0" width="100%" height="100%" fill="black" />
+    <text
+      x="64" y="28"
+      font-family="Courier New"
+      font-size="40"
+      font-weight="bold"
+      fill="red"
+      text-anchor="middle"
+    >
+      ''' + moment().utc().format(if isOn then 'HH:mm' else 'HH mm') + '''
+    </text>
+  </svg>
+  '''
 
-loadImage = () ->
   new Promise (resolve) ->
     img = new Image()
     img.onload = -> resolve img
     img.src = 'data:image/svg+xml,' + encodeURIComponent(svgData)
 
-ScreenShape = (regl) -> loadImage().then (img) -> regl
+ScreenShape = (regl) -> Promise.all([ loadImage(false), loadImage(true) ]).then (imgList) -> regl
   context:
     clay:
       vert: '''
@@ -57,7 +57,9 @@ ScreenShape = (regl) -> loadImage().then (img) -> regl
 
         uniform int pixelWidth;
         uniform int pixelHeight;
-        uniform sampler2D image;
+        uniform float time;
+        uniform sampler2D imageOff;
+        uniform sampler2D imageOn;
 
         varying vec2 fUV;
 
@@ -74,7 +76,10 @@ ScreenShape = (regl) -> loadImage().then (img) -> regl
           vec2 pixelPlace = pixelPos - floor(pixelPos) - vec2(0.5, 0.5);
           vec2 pixelIntensity = vec2(1.0, 1.0) - pixelPlace * pixelPlace / 0.25;
           float pixelBrightness = pixelIntensity.x * pixelIntensity.y * 1.1;
-          return vec4(0.01, 0.01, 0.01, 0) + pixelBrightness * texture2D(image, fUV);
+
+          bool isOn = mod(time, 1.0) > 0.5;
+
+          return vec4(0.01, 0.01, 0.01, 0) + pixelBrightness * (isOn ? texture2D(imageOn, fUV) : texture2D(imageOff, fUV));
         }
 
         #pragma glslify: export(claySetup)
@@ -85,7 +90,9 @@ ScreenShape = (regl) -> loadImage().then (img) -> regl
     radius: regl.prop('radius')
     pixelWidth: PIXEL_WIDTH
     pixelHeight: PIXEL_HEIGHT
-    image: regl.texture(img, mag: 'nearest', min: 'nearest')
+    time: regl.context('time')
+    imageOff: regl.texture(imgList[0], mag: 'nearest', min: 'nearest')
+    imageOn: regl.texture(imgList[1], mag: 'nearest', min: 'nearest')
 
   attributes:
     position: regl.buffer [
