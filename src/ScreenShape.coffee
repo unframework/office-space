@@ -16,7 +16,7 @@ loadImage = (isOn) ->
       font-family="Courier New"
       font-size="40"
       font-weight="bold"
-      fill="red"
+      fill="#6e1100"
       text-anchor="middle"
     >
       ''' + moment().utc().format(if isOn then 'HH:mm' else 'HH mm') + '''
@@ -88,7 +88,7 @@ ScreenShape = (regl) -> Promise.all([ loadTexture(regl, false), loadTexture(regl
           vec2 pixelPos = fUV * vec2(pixelWidth, pixelHeight);
           vec2 pixelPlace = pixelPos - floor(pixelPos) - vec2(0.5, 0.5);
           vec2 pixelIntensity = vec2(1.0, 1.0) - pixelPlace * pixelPlace / 0.25;
-          float pixelBrightness = pixelIntensity.x * pixelIntensity.y * 1.1;
+          float pixelBrightness = pixelIntensity.x * pixelIntensity.y * 0.6;
 
           bool isOn = mod(time, 1.0) > 0.5;
 
