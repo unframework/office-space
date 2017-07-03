@@ -23,12 +23,13 @@ svgData = '''
 </svg>
 '''
 
-loadImage = (onLoad) ->
-  img = new Image()
-  img.onload = -> onLoad img
-  img.src = 'data:image/svg+xml,' + encodeURIComponent(svgData)
+loadImage = () ->
+  new Promise (resolve) ->
+    img = new Image()
+    img.onload = -> resolve img
+    img.src = 'data:image/svg+xml,' + encodeURIComponent(svgData)
 
-ScreenShape = (regl) -> new Promise (resolve) -> loadImage (img) -> resolve regl
+ScreenShape = (regl) -> loadImage().then (img) -> regl
   context:
     clay:
       vert: '''
