@@ -29,7 +29,20 @@ loadImage = (isOn) ->
     img.onload = -> resolve img
     img.src = 'data:image/svg+xml,' + encodeURIComponent(svgData)
 
-ScreenShape = (regl) -> Promise.all([ loadImage(false), loadImage(true) ]).then (imgList) -> regl
+loadTexture = (regl, isOn) ->
+  loadImage(isOn).then (img) ->
+    tex = regl.texture(img, mag: 'nearest', min: 'nearest')
+
+    # update the displayed time in texture every minute
+    # @todo this is not synced to the clock blink
+    setInterval ->
+      loadImage(isOn).then (img) ->
+        tex(img, mag: 'nearest', min: 'nearest')
+    , 60 * 1000
+
+    tex
+
+ScreenShape = (regl) -> Promise.all([ loadTexture(regl, false), loadTexture(regl, true) ]).then (textureList) -> regl
   context:
     clay:
       vert: '''
@@ -91,8 +104,8 @@ ScreenShape = (regl) -> Promise.all([ loadImage(false), loadImage(true) ]).then 
     pixelWidth: PIXEL_WIDTH
     pixelHeight: PIXEL_HEIGHT
     time: regl.context('time')
-    imageOff: regl.texture(imgList[0], mag: 'nearest', min: 'nearest')
-    imageOn: regl.texture(imgList[1], mag: 'nearest', min: 'nearest')
+    imageOff: textureList[0]
+    imageOn: textureList[1]
 
   attributes:
     position: regl.buffer [
